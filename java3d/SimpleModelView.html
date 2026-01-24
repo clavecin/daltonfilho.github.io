@@ -1,0 +1,175 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<title>Java 3D Tutorial - SimpleModelView.java</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<style type="text/css">
+<!--
+body {color: #ffffff; background-color: #000000; font-family: Monospaced}
+table {color: #ffffff; font-family: Monospaced}
+.java-operators {color: #ff00ff}
+.java-block-comment {color: #66ccff}
+.java-numeric-literals {color: #00ffff; font-family: Monospaced; font-weight: bold}
+.java-keywords {color: #00ff00; font-family: Monospaced; font-weight: bold}
+.java-string-literal {color: #ffc800}
+-->
+</style>
+</head>
+<body>
+<pre>
+<span class="java-block-comment">/*</span>
+<span class="java-block-comment"> * Java 3D Tutorial example. </span>
+<span class="java-block-comment"> *</span>
+<span class="java-block-comment"> * http://www.daltonfilho.com</span>
+<span class="java-block-comment"> *</span>
+<span class="java-block-comment"> * Copyright (C) 2005 Dalton Filho</span>
+<span class="java-block-comment"> *</span>
+<span class="java-block-comment"> * This program is free software: you can redistribute it and/or modify</span>
+<span class="java-block-comment"> * it under the terms of the GNU General Public License as published by</span>
+<span class="java-block-comment"> * the Free Software Foundation, either version 3 of the License, or</span>
+<span class="java-block-comment"> * (at your option) any later version.</span>
+<span class="java-block-comment"> * </span>
+<span class="java-block-comment"> * This program is distributed in the hope that it will be useful,</span>
+<span class="java-block-comment"> * but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="java-block-comment"> * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="java-block-comment"> * GNU General Public License for more details.</span>
+<span class="java-block-comment"> * </span>
+<span class="java-block-comment"> * You should have received a copy of the GNU General Public License</span>
+<span class="java-block-comment"> * along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="java-block-comment"> */</span>
+ 
+<span class="java-keywords">package</span> com<span class="java-operators">.</span>daltonfilho<span class="java-operators">.</span>java3d<span class="java-operators">;</span>
+
+
+<span class="java-keywords">import</span> java<span class="java-operators">.</span>awt<span class="java-operators">.</span><span class="java-operators">*</span><span class="java-operators">;</span>
+<span class="java-keywords">import</span> java<span class="java-operators">.</span>io<span class="java-operators">.</span>FileReader<span class="java-operators">;</span>
+<span class="java-keywords">import</span> java<span class="java-operators">.</span>io<span class="java-operators">.</span>IOException<span class="java-operators">;</span>
+<span class="java-keywords">import</span> javax<span class="java-operators">.</span>swing<span class="java-operators">.</span>JFrame<span class="java-operators">;</span>
+<span class="java-keywords">import</span> javax<span class="java-operators">.</span>vecmath<span class="java-operators">.</span><span class="java-operators">*</span><span class="java-operators">;</span>
+<span class="java-keywords">import</span> javax<span class="java-operators">.</span>media<span class="java-operators">.</span>j3d<span class="java-operators">.</span><span class="java-operators">*</span><span class="java-operators">;</span>
+<span class="java-keywords">import</span> com<span class="java-operators">.</span>sun<span class="java-operators">.</span>j3d<span class="java-operators">.</span>loaders<span class="java-operators">.</span>Scene<span class="java-operators">;</span>
+<span class="java-keywords">import</span> com<span class="java-operators">.</span>sun<span class="java-operators">.</span>j3d<span class="java-operators">.</span>loaders<span class="java-operators">.</span>objectfile<span class="java-operators">.</span>ObjectFile<span class="java-operators">;</span>
+<span class="java-keywords">import</span> com<span class="java-operators">.</span>sun<span class="java-operators">.</span>j3d<span class="java-operators">.</span>utils<span class="java-operators">.</span>universe<span class="java-operators">.</span>SimpleUniverse<span class="java-operators">;</span>
+
+
+<span class="java-block-comment">/**</span>
+<span class="java-block-comment"> * This class creates a very simple window in which a 3D canvas occupies the </span>
+<span class="java-block-comment"> * entire window and displays a 3D model loaded from disk. You will have to </span>
+<span class="java-block-comment"> * change the line where the path of the model is set.</span>
+<span class="java-block-comment"> *</span>
+<span class="java-block-comment"> * @author Dalton Filho</span>
+<span class="java-block-comment"> * @since 12/28/2005</span>
+<span class="java-block-comment"> */</span>
+<span class="java-keywords">public</span> <span class="java-keywords">class</span> SimpleModelView <span class="java-keywords">extends</span> JFrame <span class="java-operators">{</span>
+
+    
+    <span class="java-block-comment">// INSTANCE ****************************************************************</span>
+
+    <span class="java-block-comment">/** The canvas where the object is rendered. */</span>
+    <span class="java-keywords">private</span> Canvas3D canvas<span class="java-operators">;</span>
+
+    <span class="java-block-comment">/** Simplifies the configuration of the scene. */</span>
+    <span class="java-keywords">private</span> SimpleUniverse universe<span class="java-operators">;</span>
+
+    <span class="java-block-comment">/** The root node of the scene. */</span>
+    <span class="java-keywords">private</span> BranchGroup root<span class="java-operators">;</span>
+    
+    <span class="java-block-comment">// INITIALIZATION **********************************************************</span>
+
+    <span class="java-block-comment">/**</span>
+<span class="java-block-comment">     * Creates a window with a 3D canvas on its center.</span>
+<span class="java-block-comment">     *</span>
+<span class="java-block-comment">     * @throws IOException if some error occur while loading the model</span>
+<span class="java-block-comment">     */</span>
+    <span class="java-keywords">public</span> SimpleModelView<span class="java-operators">(</span><span class="java-operators">)</span> <span class="java-keywords">throws</span> IOException <span class="java-operators">{</span>
+        configureWindow<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">;</span>
+        configureCanvas<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">;</span>
+        conigureUniverse<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">;</span>
+        addModelToUniverse<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">;</span>
+        addLightsToUniverse<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">;</span>
+        root<span class="java-operators">.</span>compile<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">;</span>
+        universe<span class="java-operators">.</span>addBranchGraph<span class="java-operators">(</span>root<span class="java-operators">)</span><span class="java-operators">;</span>
+    <span class="java-operators">}</span>
+
+    <span class="java-block-comment">/**</span>
+<span class="java-block-comment">     * Defines basic properties of this window.</span>
+<span class="java-block-comment">     */</span>
+    <span class="java-keywords">private</span> <span class="java-keywords">void</span> configureWindow<span class="java-operators">(</span><span class="java-operators">)</span> <span class="java-operators">{</span>
+        setTitle<span class="java-operators">(</span><span class="java-string-literal">&quot;Basic Java3D Program&quot;</span><span class="java-operators">)</span><span class="java-operators">;</span>
+        setSize<span class="java-operators">(</span><span class="java-numeric-literals">640</span><span class="java-operators">,</span> <span class="java-numeric-literals">480</span><span class="java-operators">)</span><span class="java-operators">;</span>
+        Dimension screenSize <span class="java-operators">=</span> Toolkit<span class="java-operators">.</span>getDefaultToolkit<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">.</span>getScreenSize<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">;</span>
+        <span class="java-keywords">int</span> locationX <span class="java-operators">=</span> <span class="java-operators">(</span>screenSize<span class="java-operators">.</span>width <span class="java-operators">-</span> getWidth<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">)</span> <span class="java-operators">/</span> <span class="java-numeric-literals">2</span><span class="java-operators">;</span>
+        <span class="java-keywords">int</span> locationY <span class="java-operators">=</span> <span class="java-operators">(</span>screenSize<span class="java-operators">.</span>height <span class="java-operators">-</span> getHeight<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">)</span> <span class="java-operators">/</span> <span class="java-numeric-literals">2</span><span class="java-operators">;</span>
+        setLocation<span class="java-operators">(</span>locationX<span class="java-operators">,</span>locationY<span class="java-operators">)</span><span class="java-operators">;</span>
+        setDefaultCloseOperation<span class="java-operators">(</span>JFrame<span class="java-operators">.</span>EXIT_ON_CLOSE<span class="java-operators">)</span><span class="java-operators">;</span>
+    <span class="java-operators">}</span>
+
+    <span class="java-block-comment">/**</span>
+<span class="java-block-comment">     * Defines basic properties of the canvas. </span>
+<span class="java-block-comment">     */</span>
+    <span class="java-keywords">private</span> <span class="java-keywords">void</span> configureCanvas<span class="java-operators">(</span><span class="java-operators">)</span> <span class="java-operators">{</span>
+        canvas <span class="java-operators">=</span> <span class="java-keywords">new</span> Canvas3D<span class="java-operators">(</span>SimpleUniverse<span class="java-operators">.</span>getPreferredConfiguration<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">)</span><span class="java-operators">;</span>
+        canvas<span class="java-operators">.</span>setDoubleBufferEnable<span class="java-operators">(</span><span class="java-keywords">true</span><span class="java-operators">)</span><span class="java-operators">;</span>
+        getContentPane<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">.</span>add<span class="java-operators">(</span>canvas<span class="java-operators">,</span> BorderLayout<span class="java-operators">.</span>CENTER<span class="java-operators">)</span><span class="java-operators">;</span>
+    <span class="java-operators">}</span>
+
+    <span class="java-block-comment">/** </span>
+<span class="java-block-comment">     * Defines basic properties of the universe.</span>
+<span class="java-block-comment">     */</span>
+    <span class="java-keywords">private</span> <span class="java-keywords">void</span> conigureUniverse<span class="java-operators">(</span><span class="java-operators">)</span> <span class="java-operators">{</span>
+        universe <span class="java-operators">=</span> <span class="java-keywords">new</span> SimpleUniverse<span class="java-operators">(</span>canvas<span class="java-operators">)</span><span class="java-operators">;</span>
+        universe<span class="java-operators">.</span>getViewingPlatform<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">.</span>setNominalViewingTransform<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">;</span>
+    <span class="java-operators">}</span>
+
+    <span class="java-block-comment">/**</span>
+<span class="java-block-comment">     * Loads a model from disk and assigns the root node of the scene</span>
+<span class="java-block-comment">     *</span>
+<span class="java-block-comment">     * @throws IOException if it&apos;s impossible to find the 3D model</span>
+<span class="java-block-comment">     */</span>
+    <span class="java-keywords">private</span> <span class="java-keywords">void</span> addModelToUniverse<span class="java-operators">(</span><span class="java-operators">)</span> <span class="java-keywords">throws</span> IOException <span class="java-operators">{</span>
+        Scene scene <span class="java-operators">=</span> getSceneFromFile<span class="java-operators">(</span><span class="java-string-literal">&quot;ROACH_mod.obj&quot;</span><span class="java-operators">)</span><span class="java-operators">;</span> 
+        root <span class="java-operators">=</span> scene<span class="java-operators">.</span>getSceneGroup<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">;</span>
+    <span class="java-operators">}</span>
+
+    <span class="java-block-comment">/** </span>
+<span class="java-block-comment">     * Adds a dramatic blue light... </span>
+<span class="java-block-comment">     */</span>
+    <span class="java-keywords">private</span> <span class="java-keywords">void</span> addLightsToUniverse<span class="java-operators">(</span><span class="java-operators">)</span> <span class="java-operators">{</span>
+        Bounds influenceRegion <span class="java-operators">=</span> <span class="java-keywords">new</span> BoundingSphere<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">;</span>
+        Color3f lightColor <span class="java-operators">=</span> <span class="java-keywords">new</span> Color3f<span class="java-operators">(</span>Color<span class="java-operators">.</span>BLUE<span class="java-operators">)</span><span class="java-operators">;</span>
+        Vector3f lightDirection <span class="java-operators">=</span> <span class="java-keywords">new</span> Vector3f<span class="java-operators">(</span><span class="java-operators">-</span><span class="java-numeric-literals">1F</span><span class="java-operators">,</span> <span class="java-operators">-</span><span class="java-numeric-literals">1F</span><span class="java-operators">,</span> <span class="java-operators">-</span><span class="java-numeric-literals">1F</span><span class="java-operators">)</span><span class="java-operators">;</span>
+        DirectionalLight light <span class="java-operators">=</span> <span class="java-keywords">new</span> DirectionalLight<span class="java-operators">(</span>lightColor<span class="java-operators">,</span> lightDirection<span class="java-operators">)</span><span class="java-operators">;</span>
+        light<span class="java-operators">.</span>setInfluencingBounds<span class="java-operators">(</span>influenceRegion<span class="java-operators">)</span><span class="java-operators">;</span>
+        root<span class="java-operators">.</span>addChild<span class="java-operators">(</span>light<span class="java-operators">)</span><span class="java-operators">;</span>
+    <span class="java-operators">}</span>
+
+    <span class="java-block-comment">// ACCESS ******************************************************************</span>
+
+    <span class="java-block-comment">/**</span>
+<span class="java-block-comment">     * Loads a scene from a Wavefront .obj model.</span>
+<span class="java-block-comment">     *</span>
+<span class="java-block-comment">     * @param location the path of the model</span>
+<span class="java-block-comment">     * @return Scene the scene contained on the model</span>
+<span class="java-block-comment">     * @throws IOException if some error occur while loading the model</span>
+<span class="java-block-comment">     */</span>
+    <span class="java-keywords">public</span> <span class="java-keywords">static</span> Scene getSceneFromFile<span class="java-operators">(</span>String location<span class="java-operators">)</span> <span class="java-keywords">throws</span> IOException <span class="java-operators">{</span>
+        ObjectFile file <span class="java-operators">=</span> <span class="java-keywords">new</span> ObjectFile<span class="java-operators">(</span>ObjectFile<span class="java-operators">.</span>RESIZE<span class="java-operators">)</span><span class="java-operators">;</span>
+        <span class="java-keywords">return</span> file<span class="java-operators">.</span>load<span class="java-operators">(</span><span class="java-keywords">new</span> FileReader<span class="java-operators">(</span>location<span class="java-operators">)</span><span class="java-operators">)</span><span class="java-operators">;</span>
+    <span class="java-operators">}</span>
+
+    <span class="java-block-comment">// MAIN ********************************************************************</span>
+
+    <span class="java-keywords">public</span> <span class="java-keywords">static</span> <span class="java-keywords">void</span> main<span class="java-operators">(</span>String<span class="java-operators">[</span><span class="java-operators">]</span> args<span class="java-operators">)</span> <span class="java-operators">{</span>
+        <span class="java-keywords">try</span> <span class="java-operators">{</span>
+            <span class="java-keywords">new</span> SimpleModelView<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">.</span>setVisible<span class="java-operators">(</span><span class="java-keywords">true</span><span class="java-operators">)</span><span class="java-operators">;</span>
+        <span class="java-operators">}</span> <span class="java-keywords">catch</span> <span class="java-operators">(</span>IOException ex<span class="java-operators">)</span> <span class="java-operators">{</span>
+            ex<span class="java-operators">.</span>printStackTrace<span class="java-operators">(</span><span class="java-operators">)</span><span class="java-operators">;</span>
+        <span class="java-operators">}</span>
+    <span class="java-operators">}</span>
+    
+    
+<span class="java-operators">}</span>
+
+
+</pre></body>
+</html>

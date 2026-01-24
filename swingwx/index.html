@@ -1,0 +1,1216 @@
+<html lang="en">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type"/>
+    <title>Dalton Filho - wxWidgets for Swing Developers</title>
+
+    <meta content="Java Swing wxWidgets tutorial" name="keywords"/>
+    <meta content="comparative wxWidgets tutorial for Swing developers" name="description"/>
+    <link href="../../content.css" media="screen" rel="stylesheet" type="text/css"/>
+    <link href="../dark.css" media="screen" rel="stylesheet" type="text/css"/>
+    <link href="../prism/prism.css" rel="stylesheet">
+    <script defer src="../prism/prism.js"></script>
+</head>
+<body>
+
+<div id="superheader">
+    <div id="header">
+        <div id="logo">
+            <h1><a href="http://www.daltonfilho.com">Dalton Filho</a></h1>
+        </div>
+    </div>
+
+    <div id="menu">
+        <ul>
+            <li><a href="../home.html">Home</a></li>
+            <li class="current_page_item"><a href="../">Articles</a></li>
+            <li><a href="mailto:aqua_zeros.9@icloud.com">Contact</a></li>
+        </ul>
+    </div>
+</div>
+<!-- start page -->
+
+<main class="container" id="page">
+
+    <h1>wxWidgets for Swing Developers</h1>
+
+    <h2>Index</h2>
+
+    <ol>
+        <li><a href="#about">About</a></li>
+
+        <li><a href="#story">How this tutorial came about</a></li>
+        <li><a href="#basic_setup">Basic setup</a></li>
+        <li><a href="#installing_wx">Installing wxWidgets</a></li>
+        <li><a href="#netbeans_setup">Setting up NetBeans</a></li>
+        <li><a href="#main_class">The main class</a></li>
+        <li><a href="#top_frame">The top frame</a></li>
+
+        <li><a href="#widgets_sizers_absolute">Widgets &amp; Sizers - Absolute Layout</a></li>
+        <li><a href="#widgets_sizers_flexible">Widgets &amp; Sizers - Flexible Layout </a></li>
+        <li><a href="#events_table">Event handling - Event Tables</a></li>
+        <li><a href="#events_connect">Event handling - Connect()</a></li>
+        <li><a href="#resources">Resources</a></li>
+
+        <li><a href="#conclusion">Conclusion</a></li>
+    </ol>
+
+    <!-- INDEX END -->
+
+    <!-- ABOUT START -->
+
+    <h2 id="about">About</h2>
+
+    <p>This comparative tutorial aims to make the bridge between wxWidgets and Swing to allow for Swing developers to
+        use their experience to learn the toolkit. Unlike other tutorials that assume some familiarity with C++ GUI
+        toolkits, it focuses on aspects that might be tricky or unusual to developers accustomed to Swing, deliberately
+        bypassing distracting or repetitive instructions. Once the differences are digested and the basics are grasped,
+        wxWidgets will become familiar and you will be able to proceed on your own without problems.
+
+        <!-- ABOUT END -->
+
+        <!-- STORY START -->
+
+    <h2 id="story">How this tutorial came about</h2>
+
+    <p>While in college, I've played with C++ driven by pure curiosity, reimplementing data-structures to learn the
+        basics of the language. However, there was a frustrating aspect about this exploration, as the results of my
+        efforts were mere kid-play compared to what I could do in Java at the time. Moreover, data-structures exposed me
+        to only a narrow subset of programming problems compared to what one usually finds while developing non-trivial
+        GUI applications. Wherever I looked for the source code of a GUI application written in C++, the code would seem
+        alien to me. I shied away from C++ for years until about a year after my graduation, when I was invited for a
+        C++ project that used wxWidgets as the GUI toolkit. </p>
+    <p>Having wxWidgets as my first real C++ &quot;programming canvas&quot; taught me that I learn much more when I'm
+        doing something useful with what I'm learning. This reward is encouraging and leads to more exploration, which
+        leads to more rewards, ad infinitum. wxWidgets may very well be the difference between knowing something of C++
+        or nothing at all for developers who would never consider learning the language without being able to create
+        GUIs with it. If you are inexperienced in C++ and if you never considered developing a GUI application with it,
+        wxWidgets might give the momentum you need to explore more features of the language, as well as opening your
+        mind to the advantages of C++ when it comes to desktop applications. </p>
+
+
+    <!-- STORY END -->
+
+    <!-- BASIC SETUP START -->
+
+    <h2 id="basic_setup">Basic setup</h2>
+
+    <p>I use the configuration below throughout this tutorial:</p>
+
+    <ul>
+        <li><a href="http://www.wxwidgets.org/downloads/" target="_blank">wxWidgets 2.6</a></li>
+
+        <li><a href="http://www.netbeans.org/products/cplusplus/" target="_blank">NetBeans IDE</a> - you may also use
+            the trendier <a href="http://www.eclipse.org/cdt/" target="_blank">Eclipse</a> or any other IDE of your
+            choice if you know how to build C++ applications with it
+        </li>
+        <li>GCC 4.1.2 - I don't guarantee everything will work on other versions</li>
+        <li>Any linux flavor - you may use wxWidgets in other platforms, but this tutorial will focus on the GTK build;
+            note that the Windows build has a <a
+                    href="http://www.daltonfilho.com/2008/02/23/wxwidgets-on-windows-using-netbeans-60-with-mingw-msys/">different
+                setup</a> I will not cover here
+        </li>
+
+    </ul>
+
+    <p>You may change the setup as you wish, but you will need to know what you are doing. This tutorial does not
+        require advanced C++ skills, but if you feel you need to put yours in shape, this <a
+                href="http://www.parashift.com/c++-faq-lite/" target="_blank">website</a> is the best I know for this
+        purpose.</p>
+
+    <!-- BASIC SETUP END -->
+
+    <!-- INSTALLING WX START -->
+
+    <h2 id="installing_wx">Installing wxWidgets</h2>
+
+    <p>Note: if your wxWidgets is properly installed and configured, you can skip this section.</p>
+
+
+    <p>The first thing you need to do is to make sure wxWidgets is properly installed and configured. You can easily
+        check the status of your installation by compiling and linking the <a
+                href="http://www.wxwidgets.org/docs/tutorials/hello.htm" target="_blank">hello world</a> found on
+        wxWdidgets' website (the compile and link command is right at the bottom). Please don't try this on your IDE at
+        this point because it might introduce path configuration problems. If it does not compile or link, something
+        might be wrong with your setup. You might want to try the <span class="monospaced">wx-config --cxxflags</span>
+        and <span class="monospaced">wx-config --libs</span> commands to see if they output anything. </p>
+
+    <p class="command">
+        I must admit I had a tough time using wxWidgets for the first time on my machine because the automated
+        installation provided by my Ubuntu did not install it correctly. A manual installation solved everything. If you
+        need to compile wxWidgets as I had, the instructions that come with the sources are very clear and should
+        present no problems to get going. You should look for support on Google or support forums if you still have
+        problems at this point. </p>
+
+    <!-- INSTALLING WX END -->
+
+    <!-- SETTING UP NETBEANS START -->
+
+    <h2 id="netbeans_setup">Setting up NetBeans</h2>
+
+    <p>In this section we will create a new C++ project on NetBeans, as well as configuring the compiler and linker
+        flags for the program. As the C\C++ Development Pack is not bundled by default with NetBeans, you need to <a
+                href="http://www.netbeans.org/products/cplusplus/" target="_blank">download</a> and install it if you
+        don't have it already. Once you have it installed, follow the steps below: </p>
+    <ol>
+
+        <li><span class="monospaced">File</span> --> <span class="monospaced">New Project</span>... [Ctrl + Shift + F]
+        </li>
+        <li>Select <span class="monospaced">C/C++ Project</span> | <span class="monospaced">C/C++ Application</span> on
+            the <span class="monospaced">New Project</span> dialog [<a href="new-project.png"
+                                                                       target="_blank">screenshot</a>]
+        </li>
+
+        <li>Fill in the <span class="monospaced">New C/C++ Application</span> dialog fields [<a href="new-project-2.png"
+                                                                                                target="_blank">screenshot</a>]
+        </li>
+    </ol>
+    <p>With the project already created, the compiler and linker options need to be set-up. wxWidgets needs libraries
+        and include directories that would be a strain to configure manually, but fortunately it comes with a small <a
+                href="http://www.wxwidgets.org/wiki/index.php/Wx-Config" target="_blank" title="wx-config">utility
+            program</a> that outputs all those directories and other options. You should use it to configure compiler
+        and linker options: </p>
+
+
+    <p class="caption">wxWidgets compiler options</p>
+
+    <ol>
+        <li>Right click on project name on the <span class="monospaced">Projects</span> panel --> <span
+                class="monospaced">Properties</span></li>
+        <li>On the Project Properties dialog select <span class="monospaced">C/C++</span> --&gt; <span
+                class="monospaced">C++ Compiler</span> --&gt; <span class="monospaced">Command Line </span></li>
+
+        <li>Add <span class="monospaced">`wx-config --cxxflags`</span><span class="command"> to the list of <a
+                href="compiler-flags.png" target="_blank">additional options</a></span></li>
+    </ol>
+
+    <p class="caption">wxWidgets linker options</p>
+
+    <ol>
+        <li>On the Project Properties dialog select <span class="monospaced">C/C++</span> --&gt; <span
+                class="monospaced">Linker</span> --&gt; <span class="monospaced">Command Line </span></li>
+        <li>Add <span class="monospaced">`wx-config --libs`</span><span class="command"> to the list of <a
+                href="linker-flags.png" target="_blank">additional options</a></span></li>
+    </ol>
+
+    <p>Now the project is almost configured, but you still have to decide whether you will put all headers and sources
+        in separate directories or not. If you choose the former, be sure to include the headers directory in the list
+        of include directories (<span class="monospaced">C/C++</span> --&gt; <span
+                class="monospaced">C++ Compiler</span> --&gt; <span class="monospaced">General</span> in the <span
+                class="monospaced">Project Properties</span> dialog). You will see a folder for source files and another
+        for header files in the projects panel, but these don't map to any folder in your disk, so make sure you add
+        header and source files to their appropriate directories whenever you create or add these files to your project.
+    </p>
+
+    <!-- SETTING UP NETBEANS END -->
+
+    <!-- THE MAIN CLASS START -->
+
+    <h2 id="main_class">The main class </h2>
+
+    <p>You know that in C, C++ and Java every program starts in <span class="monospaced">main()</span>, however, if you
+        take a look at the source code of many wxWidgets applications, you won't find <span
+                class="monospaced">main()</span>. This is not an obscure C++ hack, it's just a simple indirection, after
+        all, nothing implies that you should always create your own <span class="monospaced">main()</span>. For example:
+        a Java desktop framework may create its own <span class="monospaced">main()</span> and call an interface
+        implemented by you during start-up. wxWidgets has a similar approach, although it still allows you to create
+        your own <span class="monospaced">main()</span> if you will, though this is usually not recommended because it's
+        less portable. This section will use the recommended way, though you can see <a
+                href="http://www.wxwidgets.org/manuals/2.6/wx_appinifunctions.html#wxentry" target="_blank">how to use
+            your own <span class="monospaced">main()</span></a> if you're interested. </p>
+
+    <p> To create a wxWidgets application without a <span class="monospaced">main()</span>, you have to derive the <a
+            href="http://www.wxwidgets.org/manuals/2.6/wx_wxapp.html" target="_blank">wxApp</a> class and override the
+        <span class="monospaced">OnInit()</span> method. That's it! The listing below demonstrates how simple it is:
+    </p>
+
+    <details class="code-block" open>
+        <summary class="caption">my_app.h</summary>
+        <pre class="language-cpp"><code class="language-cpp">#ifndef _MY_APP_H
+#define _MY_APP_H
+
+#include &lt;wx/app.h&gt;
+
+class MyApp : public wxApp {
+
+    virtual bool OnInit();
+
+};
+
+#endif</code></pre>
+    </details>
+
+    <details class="code-block" open>
+        <summary class="caption">my_app.cc</summary>
+        <pre class="language-cpp"><code class="language-cpp">
+#include &quot;my_app.h&quot;
+
+bool MyApp::OnInit() {
+    return true;
+}
+
+IMPLEMENT_APP(MyApp);</code></pre>
+    </details>
+
+    <p>You should include these on your project, and after that it should build without problems, but before you try to
+        run it, you should be aware of the following quirks:
+
+    <ul>
+        <li><strong>return type of <span class="monospaced">OnInit()</span></strong> &#8212; an <span
+                class="monospaced">OnInit()</span> with nothing besides a <span class="monospaced">return false</span>
+            statement is equivalent to <span class="monospaced">main()</span> with an <span
+                    class="monospaced">exit(1)</span> only, whereas <span class="monospaced">return true</span> as the
+            only statement in <span class="monospaced">OnInt()</span> yields a zoombie program that does nothing besides
+            waiting to be killed;
+        </li>
+
+        <li><span class="monospaced"><strong>IMPLEMENT_APP</strong></span> &#8212; this macro creates the <span
+                class="monospaced">main()</span> function for you and invokes your overridden <span class="monospaced">OnInit()</span>.
+            You can check the header of <span class="monospaced">wxApp</span> if you're curious about what this macro
+            does, or if you want to check for alternative macros. You <em>must</em> declare this macro if you're not
+            going to provide your own <span class="monospaced">main()</span>, and this declaration <em>must</em> be in
+            the implementation section of your <span class="monospaced">wxApp</span> derived class (for the same reason
+            you don't put <span class="monospaced">main()</span> in the header). For instructions on how to create a
+            wxWidgets program with your own <span class="monospaced">main()</span>, check <a
+                    href="http://www.wxwidgets.org/manuals/2.6/wx_appinifunctions.html#wxentry" target="_blank">this
+                page</a>;
+        </li>
+
+        <li><span class="monospaced"><strong>argc and argv</strong></span> &#8212; if you need <span class="monospaced">argc</span>
+            and <span class="monospaced">argv</span>, <span class="monospaced">wxApp</span> has homonymous instance
+            variables you can use anywhere in your <span class="monospaced">wxApp</span> implementation;
+        </li>
+
+        <li><strong class="monospaced">#include &lt;wx/app.h&gt;</strong> &#8212; to find out which header corresponds
+            to which class, just check the &quot;included files&quot; section of the API doc of the class in question.
+            If you are unsure of which class to pick, try picking a class by its <a
+                    href="http://www.wxwidgets.org/manuals/2.6/wx_classesbycat.html#classesbycat" target="_blank">category</a>.
+            You can also try using the generic <span class="monospaced">&lt;wx/wx.h&gt;</span> if you want to take
+            advantage of <a href="http://www.wxwidgets.org/manuals/stable/wx_cpp.html#precompiledheaders"
+                            target="_blank">precompiled headers</a> or if you want to make your refactorings a little
+            easier.
+        </li>
+
+    </ul>
+
+    <p>You may <a href="swingwx_myapp.tar.gz">download</a> the source code of this section.</p>
+
+    <!-- THE MAIN CLASS EMD -->
+
+    <!-- THE TOP FRAME START -->
+
+    <h2 id="top_frame">The top frame</h2>
+
+
+    <p>Now it's time to show a frame. You know that in Java you can either construct a <span
+            class="monospaced">JFrame</span> and set its properties externally or you can derive a <span
+            class="monospaced">JFrame</span> and set its properties internally. In wxWidgets you can also create a <span
+            class="monospaced"><a href="http://www.wxwidgets.org/manuals/2.6/wx_wxframe.html#wxframe" target="_blank">wxFrame</a></span>
+        both ways, with the choice depending on how you want to encapsulate the widgets contained by the frame. The
+        listings below compare the external configuration style in wxWidgets and Swing:</p>
+
+
+    <details class="code-block" open>
+        <summary class="caption">External configuration of wxFrame</summary>
+        <pre class="language-cpp"><code class="language-cpp">#include &quot;my_app.h&quot;
+
+#include &lt;wx/frame.h&gt;
+
+bool MyApp::OnInit() {
+    wxFrame *frame = new wxFrame((wxFrame*) NULL, wxID_ANY, _T(&quot;Hello world&quot;), wxPoint(100, 100), wxSize(320, 240));
+
+    frame->Show(true);
+
+    return true;
+}
+
+IMPLEMENT_APP(MyApp);</code></pre>
+    </details>
+
+    <details class="code-block" open>
+        <summary class="caption">External configuration of JFrame</summary>
+        <pre class="language-java"><code class="language-java">import javax.swing.JFrame;
+
+public class MyApp {
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame(&quot;Hello world&quot;);
+
+        frame.setBounds(100, 100, 320, 240);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+    }
+
+}</code></pre>
+    </details>
+
+
+    <p>As expected, you will see a <a href="hello_window.png">window</a> if you try to build and run the program. Before
+        moving on to the internal configuration style (which will be used throughout this tutorial), I need to explain 3
+        parameters on wxFrame's <a href="http://www.wxwidgets.org/manuals/2.6/wx_wxframe.html#wxframector"
+                                   target="_blank">constructor</a> that might look peculiar from a Swing developer's
+        perspective: </p>
+
+
+    <ul>
+        <li><span class="monospaced"><strong>(wxFrame*) NULL</strong></span> &#8212; in Swing you never assign parents
+            to top level containers, whereas <span class="monospaced">wxFrame</span> requires you to define one since
+            <span class="monospaced">wxFrame</span> is not a &quot;top level container&quot; in the Swing sense of the
+            word. Use <span class="monospaced">(wxFrame*) NULL</span> whenever you need to indicate that the window does
+            not have a parent. You might want to use <span class="monospaced">wxApp</span>'s <span class="monospaced"><a
+                    href="http://www.wxwidgets.org/manuals/2.6/wx_wxapp.html#wxappsettopwindow" target="_blank">setTopWindow()</a></span>
+            as well. You need to do that <a href="http://www.wxwidgets.org/manuals/2.6/wx_cpp.html#null"
+                                            target="_blank">cast</a> for portability issues;
+        </li>
+
+        <li><span class="monospaced"><strong>wxID_ANY</strong></span> &#8212; in Swing you don't have to provide IDs for
+            components, and if you need some identification, you would probably use <span
+                    class="monospaced">Component</span>'s <span class="monospaced">setName()</span>. In wxWidgets you
+            have the choice of providing an ID of your own or letting wxWidgets choose the ID with <span
+                    class="monospaced"><a
+                    href="http://www.wxwidgets.org/manuals/stable/wx_eventhandlingoverview.html#windowids"
+                    target="_blank">wxID_ANY</a></span>. If you want to provide the ID yourself, it must be smaller than
+            <span class="monospaced">wxID_LOWEST</span> and greater than <span
+                    class="monospaced">wxID_HIGHEST</span> to be valid. But why, after all, you need to provide an ID?
+            Answer: because wxWidgets' event handling system needs them to assign behaviors to components. This may
+            seem obvious to programmers not used to the listener model for event handling, but as a Swing developer
+            just make sure you understand that there's no <span class="monospaced">addFooListener()</span> in
+            wxWidgets. We'll see that in more detail on the <a href="#events_table">event handling</a>
+            section;
+        </li>
+
+        <li><span class="monospaced"><strong>_T(&quot;Hello world&quot;)</strong></span>&#8212; you know it's just the
+            window title, but note the <span class="monospaced"><a
+                    href="http://www.wxwidgets.org/manuals/2.6/wx_stringfunctions.html#underscoret"
+                    target="_blank">_T()</a></span>
+            macro: you need it to convert your strings to unicode (in case you <a
+                    href="http://www.wxwidgets.org/manuals/2.6/wx_unicode.html#unicodesettings"
+                    target="_blank">compile</a> with unicode support). In the case you compile your program without
+            unicode support, this macro is harmless, so you better <em>always</em> use it to avoid possible nightmares.
+        </li>
+
+    </ul>
+
+    <br/>
+
+    <p>With enough explanations given for the <span class="monospaced">wxFrame</span> constructor, it's time to use the
+        <span class="monospaced">wxFrame</span> derivation strategy that we are going to use from now on:</p>
+
+
+    <details class="code-block" open>
+        <summary class="caption">my_frame.h</summary>
+        <pre class="language-cpp"><code class="language-cpp">#ifndef _MY_FRAME_H
+#define _MY_FRAME_H
+
+#include &lt;wx/frame.h&gt;
+
+class MyFrame : public wxFrame {
+
+public:
+
+    MyFrame(const wxString &amp;title);
+
+};
+
+#endif	/* _MY_FRAME_H */</code></pre>
+    </details>
+
+    <details class="code-block" open>
+        <summary class="caption">myframe.cc</summary>
+        <pre class="language-cpp"><code class="language-cpp">#include "my_frame.h"
+
+MyFrame::MyFrame(const wxString &amp;title) : wxFrame((wxFrame*) NULL, wxID_ANY, title) {
+
+}</code></pre>
+    </details>
+
+    <p>If you tried the external configuration style presented on the beginning of this section, you should replace it
+        for the code below if you are following this tutorial:</p>
+
+    <details class="code-block" open>
+        <summary class="caption">myframe.cc</summary>
+        <pre class="language-cpp"><code class="language-cpp">#include &quot;my_app.h&quot;
+
+#include &quot;my_frame.h&quot;
+
+bool MyApp::OnInit() {
+    MyFrame *frame = new MyFrame(_T(&quot;First frame&quot;)); 
+
+    frame->Show(true);
+
+    return true;
+}
+
+IMPLEMENT_APP(MyApp);</code></pre>
+    </details>
+
+    <p>You may <a href="swingwx_myframe.tar.gz">download</a> the source code of this section.</p>
+
+    <!-- THE TOP FRAME END -->
+
+    <!-- WIDGETS & SIZERS - ABSOLUTE LAYOUT START -->
+
+
+    <h2 id="widgets_sizers_absolute">Widgets &amp; Sizers - Absolute Layout</h2>
+
+    <p>Adding widgets in wxWidgets using an absolute layout is very different from Swing. The first notable difference
+        is that you should define the parent of a component on its constructor instead of using a method like <span
+                class="monospaced">add(Component)</span>. As we will see on the next section, you will use a method that
+        do resembles <span class="monospaced">Component</span><span class="preprocessor">'s </span><span
+                class="monospaced">add(Component)</span> when you use a layout manager in wxWidgets, but you still have
+        to define the parent of the component when you construct it. The second difference is that all widgets use
+        absolute layout by default, unlike Swing where every component has its own default layout manager. The final
+        notable difference is that if you are not going to use a layout manager (a.k.a. sizer in wxWidgets),
+        constructing the component is enough to add it to its parent (because it is defined on the child's constructor).
+        The code sample below illustrates this concept: </p>
+
+    <details class="code-block" open>
+        <summary class="caption">Adding two panels - Absolute layout - wxWidgets</summary>
+        <pre class="language-cpp"><code class="language-cpp">#include &lt;wx/panel.h&gt;
+
+MyFrame::MyFrame(const wxString&amp; title) : wxFrame((wxFrame*) NULL, wxID_ANY, title) {
+    new wxPanel(this, wxID_ANY, wxPoint(20, 20), wxSize(80, 120), wxSUNKEN_BORDER);
+    new wxPanel(this, wxID_ANY, wxPoint(120, 20), wxSize(80, 120), wxRAISED_BORDER);
+}</code></pre>
+    </details>
+
+    <details class="code-block" open>
+        <summary class="caption">Adding two panels - Absolute layout - Swing (Java 6 version)</summary>
+        <pre class="language-java"><code class="language-java">public MyFrame(String title) {
+    super(title);
+
+    JPanel panel1 = new JPanel();
+    JPanel panel2 = new JPanel();
+
+    panel1.setBounds(20, 20, 80, 120);
+    panel2.setBounds(120, 20, 80, 120);
+
+    panel1.setBorder(BorderFactory.createLoweredBevelBorder());
+    panel2.setBorder(BorderFactory.createRaisedBevelBorder());
+
+    setLayout(null);
+
+    add(panel1);
+    add(panel2);
+}</code></pre>
+    </details>
+
+    <p class="caption">Sample results - wxWidgets</p>
+
+    <p class="imagearea"><img alt="First test" src="sizer_test_1.png" title="First test"/><img
+            alt="Second test - panels remain on their position"
+            src="sizer_test_2.png"
+            title="Second test - panels remain on their position"/>
+    </p>
+    <p class="subtitle">Fig. 1. Widgets are not resized if you use absolute layout </p>
+
+    <p>It is clearly visible that wxWidgets makes it very easy to configure components in absolute layouts. Note,
+        however, that absolute layouts are <a href="http://www.leepoint.net/notes-java/GUI/layouts/nulllayout.html"
+                                              target="_blank">rarely suitable</a> for anything other than throw-away
+        programs. Before we move into more flexible layouts, let's take a look at some arguments I used on the <span
+                class="monospaced">wxPanel</span>'s <a
+                href="http://www.wxwidgets.org/manuals/2.6/wx_wxpanel.html#wxpanelctor" target="_blank">constructor</a>:
+    </p>
+
+
+    <ul>
+        <li id="widget_parent"><span class="monospaced"><strong>this</strong></span> &#8212; the first argument
+            determines the parent of the widget, in this case, a pointer to <span class="monospaced">MyFrame</span> (a
+            derivation of <span class="monospaced">wxFrame</span>). This is the equivalent to <span class="monospaced">Component</span>'s
+            <span class="monospaced">add(Component)</span> method;
+        </li>
+
+        <li><span class="monospaced"><strong>wxSUNKEN_BORDER</strong></span>, <span class="monospaced"><strong>wxRAISED_BORDER</strong></span>
+            &#8212; most widgets in wxWidgets provide <a
+                    href="http://www.wxwidgets.org/manuals/2.6/wx_windowstyles.html#windowstyles" target="_blank">styling
+                facilities</a> on their constructors, many of which can be inherited from their parents. These border
+            styles in particular were inherited from <a
+                    class="monospaced" href="http://www.wxwidgets.org/manuals/2.6/wx_wxwindow.html#wxwindow"
+                    target="_blank">wxWindow</a>.
+        </li>
+    </ul>
+
+    <p>You can try variations with <a href="http://www.wxwidgets.org/manuals/2.6/wx_classesbycat.html#classesbycat"
+                                      target="_blank">other widgets</a> to see how they behave and what styles are
+        available for them. You may <a href="swingwx_absolute_layout.tar.gz">download</a> the source code of this
+        section. </p>
+
+
+    <h2 id="widgets_sizers_flexible">Widgets &amp; Sizers - Flexible Layout</h2>
+
+    <p>The previous section demonstrated how to add panels into a frame using no layout manager, but for the most part
+        you want your layout to adjust gracefully to resizing. This is when sizers (the equivalent to Swing's layout
+        managers) come into play. This section will demonstrate this by adding two panels to a frame, where both panels
+        have to share the space of the frame equally and maintain a fixed distance of 20 pixels from each other and from
+        the frame's borders. Both the panels and the frame have to maintain a minimum size as well. The code samples
+        below demonstrate this layout in Swing and wxWidgets: </p>
+
+    <details class="code-block" open>
+        <summary class="caption">Layout configuration - Two panels - Swing</summary>
+        <pre class="language-java"><code class="language-java">public MyFrame(String title) {
+    super(title);
+    initOutterPanels();
+}
+
+private void initOutterPanels() {
+    leftPanel = new JPanel(); 
+    rightPanel = new JPanel();
+
+    leftPanel.setBackground(Color.YELLOW);
+    rightPanel.setBackground(Color.MAGENTA);
+
+    leftPanel.setMinimumSize(new Dimension(180, 120));
+    rightPanel.setMinimumSize(leftPanel.getMinimumSize());
+    leftPanel.setPreferredSize(leftPanel.getMinimumSize());
+    rightPanel.setPreferredSize(leftPanel.getMinimumSize());
+
+    setMinimumSize(new Dimension(420, 160));        
+
+    JPanel container = new JPanel();
+
+    container.setLayout(new BoxLayout(container, BoxLayout.X_AXIS));
+
+    container.add(leftPanel);
+    container.add(Box.createHorizontalStrut(20));
+    container.add(rightPanel);
+
+    add(container, BorderLayout.CENTER);
+    add(Box.createVerticalStrut(20), BorderLayout.SOUTH);
+    add(Box.createVerticalStrut(20), BorderLayout.NORTH);
+    add(Box.createHorizontalStrut(20), BorderLayout.WEST);
+    add(Box.createHorizontalStrut(20), BorderLayout.EAST);
+}</code></pre>
+    </details>
+
+    <details class="code-block" open>
+        <summary class="caption">Layout configuration - Two panels - wxWidgets</summary>
+        <pre class="language-cpp"><code class="language-cpp">#include &lt;wx/sizer.h&gt; // other includes are in previous examples
+
+MyFrame::MyFrame(const wxString &amp;title) 
+        : wxFrame((wxFrame*) NULL, wxID_ANY, title),
+          leftPanel(NULL), 
+          rightPanel(NULL) {
+          
+    initOutterPanels(); // Declare this method in the header
+}
+
+void MyFrame::initOutterPanels() {
+    wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    // Declare these panels and IDs in the header
+    leftPanel = new wxPanel(this, wxID_LEFT_PANEL);
+    rightPanel = new wxPanel(this, wxID_LEFT_PANEL);
+
+    leftPanel->SetBackgroundColour(wxColour(255, 255, 0));
+    rightPanel->SetBackgroundColour(wxColour(255, 0, 255));
+    
+    leftPanel->SetMinSize(wxSize(180, 120));
+    rightPanel->SetMinSize(wxSize(180, 120));
+
+    sizer->SetSizeHints(this);
+    
+    sizer->Add(leftPanel, true, wxEXPAND | wxTOP | wxBOTTOM | wxLEFT, 20);
+    sizer->AddSpacer(20);
+    sizer->Add(rightPanel, true, wxEXPAND | wxTOP | wxBOTTOM | wxRIGHT, 20);
+
+    SetSizer(sizer);
+}</code></pre>
+    </details>
+
+    <p class="caption">Sample results</p>
+    <p class="imagearea"><img alt="Sizer test" src="swing_wx_sizer_test.png"/></p>
+
+    <p class="subtitle">Fig. 2. The minimum size of the frame is automatically calculated from the minimum size of child
+        sizers in wxWidgets; Swing, on the other hand, requires you to <s>guess</s> define this size manually</p>
+
+    <p>As you can see, it took more lines of code to get the same result in the higher level Swing. To make things
+        worse, in Swing I had to use another container to achieve the same result and the added struts do not use the
+        system color. I would have to spend even more lines of code to make each strut transparent. Comparisons aside,
+        let's briefly analyze the wxWidgets code to see how the layout specifications translate to Swing: </p>
+
+    <ul>
+        <li><span class="monospaced"><strong>wxBoxSizer(wxHORIZONTAL)</strong></span> &#8212; the equivalent to <span
+                class="monospaced">BoxLayout</span>'s <span class="monospaced">X_AXIS</span>, while <span
+                class="monospaced">wxVERTICAL</span> is the equivalent to <span class="monospaced">BoxLayout</span>'s
+            <span class="monospaced">Y_AXIS</span>;
+        </li>
+
+        <li><span class="monospaced"><strong>wxPanel(this, wxID_LEFT_PANEL)</strong></span> &#8212; as in the Swing
+            code, there was no need to configure size and location since the layout to be used is not absolute, however,
+            since the next section will handle events of this panel, I had to define an ID (remember to include it in
+            your header or <a href="swingwx_sizers.tar.gz">download</a> the source code of this section if you are in
+            doubt);
+        </li>
+        <li><span class="monospaced"><strong>sizer-&gt;SetSizeHints(this)</strong></span> &#8212; makes the minimum size
+            of the parent (in this case, <span class="monospaced">this</span>) match the minimum size of the sizer. You
+            must use this method if you don't want to allow the parent of the sizer to become smaller than the minimum
+            size of the sizer;
+        </li>
+
+        <li><span class="monospaced"><strong> sizer->Add(leftPanel</strong></span> &#8212; as <a href="#widget_parent">previously
+            mentioned</a>, you define the parent of the widget on its constructor, <em>not</em> here. This argument
+            merely adds the component to the sizer's &quot;responsibility&quot;, the sizer does not become the parent;
+        </li>
+        <li><em>(cont.)</em> <span class="monospaced"><strong>true</strong></span> &#8212; allows the component to
+            expand <em>horizontally</em>, whereas <span class="monospaced">false</span> would maintain the component on
+            its minimum size <em>horizontally</em>. Note that if the sizer were vertical, the rules would apply <em>vertically</em>
+            instead of <em>horizontally</em>;
+        </li>
+
+        <li><em>(cont.)</em> <span class="monospaced"><strong>wxEXPAND</strong></span> &#8212; same as above, but
+            vertically: using <span class="monospaced">wxEXPAND</span> implies that the widget can expand
+            <em>vertically</em>, whereas not using it retains the component on its minimum size <em>vertically</em>. If
+            the sizer were vertical, the rules would apply <em>horizontally</em>;
+        </li>
+
+        <li><em>(cont.)</em> <span class="monospaced"><strong>wxTOP | wxBOTTOM | wxLEFT, 20</strong></span> &#8212;
+            check the documentation of <span class="monospaced">wxSizer</span>'s <a
+                    class="monospaced" href="http://www.wxwidgets.org/manuals/2.6/wx_wxsizer.html#wxsizeradd"
+                    target="_blank">add()</a> for a detailed explanation of each flag. The <span class="monospaced">wxTOP</span>,
+            <span class="monospaced">wxBOTTOM</span> and <span class="monospaced">wxLEFT</span> define where the margins
+            of the left panel should be, while the last argument defines the length of this margin. Note that I did not
+            use <span class="monospaced">wxRIGHT</span> because a spacer was added on its right, and for the same reason
+            I did not use <span class="monospaced">wxLEFT</span> on the right panel;
+        </li>
+
+        <li><span class="monospaced"><strong>SetSizer(sizer)</strong></span> &#8212; the equivalent to Swing's
+            setLayout(...)
+        </li>
+    </ul>
+
+    <p>Now, to finish this section, let's add one button to each panel. The buttons have to maintain a minimum size
+        while still being able to stretch horizontally. They have to keep centered on the panels and should preserve a
+        minimum distance of 20 pixels from their parent's borders. The following code samples implement these
+        requirements in Swing and wxWidgets: </p>
+
+    <details class="code-block" open>
+        <summary class="caption">Layout configuration - Two buttons - Swing</summary>
+        <pre class="language-java"><code class="language-java">public MyFrame(String title) {
+    super(title);
+    initOutterPanels();
+    initButtons();
+}
+
+private void initButtons() {
+    leftButton = new JButton("Left button");
+    rightButton = new JButton("Right button");
+
+    leftButton.setMinimumSize(new Dimension(130, 30));
+    rightButton.setMinimumSize(leftButton.getMinimumSize());
+    leftButton.setPreferredSize(leftButton.getMinimumSize());
+    rightButton.setPreferredSize(leftButton.getMinimumSize());
+
+    GridBagLayout gridbag = new GridBagLayout();        
+    GridBagConstraints c = new GridBagConstraints();
+
+    c.weightx = 1.0;
+    c.fill = GridBagConstraints.HORIZONTAL;
+    c.insets = new Insets(20, 20, 20, 20);
+
+    leftPanel.setLayout(gridbag);
+    rightPanel.setLayout(gridbag);
+
+    gridbag.setConstraints(leftButton, c);
+    gridbag.setConstraints(rightButton, c);
+
+    leftPanel.add(leftButton);
+    rightPanel.add(rightButton);
+}</code></pre>
+    </details>
+
+    <details class="code-block" open>
+        <summary class="caption">Layout configuration - Two buttons - wxWidgets</summary>
+        <pre class="language-cpp"><code class="language-cpp">MyFrame::MyFrame(const wxString &amp;title)
+        : wxFrame((wxFrame*) NULL, wxID_ANY, title),
+          leftPanel(NULL), rightPanel(NULL), leftButton(NULL), rightButton(NULL) {
+
+    initPanels();
+    initButtons();
+}                    
+
+void MyFrame::initButtons() {
+
+    // Declare these buttons and IDs in the header
+    leftButton = new wxButton(leftPanel, wxID_LEFT_BUTTON, _T("Left button"));
+    rightButton = new wxButton(rightPanel, wxID_RIGHT_BUTTON, _T("Right button"));
+
+    wxBoxSizer *leftSizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer *rightSizer = new wxBoxSizer(wxVERTICAL);
+
+    leftButton->SetMinSize(wxSize(130, 30));
+    rightButton->SetMinSize(wxSize(130, 30));
+
+    leftSizer->AddStretchSpacer();
+    leftSizer->Add(leftButton, false, wxEXPAND | wxALL, 20);
+    leftSizer->AddStretchSpacer();
+
+    rightSizer->AddStretchSpacer();
+    rightSizer->Add(rightButton, false, wxEXPAND | wxALL, 20);
+    rightSizer->AddStretchSpacer();
+
+    leftSizer->SetSizeHints(leftPanel);
+    rightSizer->SetSizeHints(rightPanel);
+
+    leftPanel->SetSizer(leftSizer);
+    rightPanel->SetSizer(rightSizer);
+}</code></pre>
+    </details>
+
+    <p class="caption">Sample results [wxWidgets]</p>
+    <p class="imagearea"><img alt="Button test" src="sizer_test_button.png"/></p>
+
+    <p class="subtitle">Fig. 3. Centered buttons with fixed height and variable width </p>
+
+    <p>The code in this section may not be very useful, but it's more than enough for you to start using sizers. Note
+        that the goal here is comprehension: once you get the idea of how the box sizer works in wxWidgets, you can do
+        most of your layouts with simple compositions. Other methods of <span class="monospaced">wxSizer</span> are very
+        similar to their equivalents in Swing and should pose no problems for you to understand. </p>
+
+    <p>You may <a href="swingwx_sizers.tar.gz">download</a> the documented source code of this section.</p>
+
+    <!-- WIDGETS & SIZERS - FLEXIBLE LAYOUT END -->
+
+    <!-- EVENT HANDLING - EVENT TABLE START -->
+
+    <h2 id="events_table">Event handling - Event Tables </h2>
+
+    <p>If you have ever written any sizeable Java desktop program, you have probably written <em>tons</em> of event
+        handling classes. A Java class may contain dozens of inner classes piled over each other to handle events of an
+        arbitrary number of components. While this may sound familiar to you, this style of event handling is still
+        weird to many people. It may have been strange to you while you were learning Java, but at this stage of the
+        game this is probably a long forgotten impression. Event handling in wxWidgets is something that will bring back
+        that awkward feeling, but as soon as it pass it will look just as natural as event handling in AWT/Swing.</p>
+    <p>wxWidgets offers more than one way to write event handling code. The most traditional one is based on <em>event
+        tables</em>, which are preprocessor macros where you associate an event with a handler method. The following
+        code samples demonstrate simple event handling in Swing and its equivalent in wxWidgets using event tables: </p>
+
+
+    <details class="code-block" open>
+        <summary class="caption">Event handling - Swing</summary>
+        <pre class="language-java"><code class="language-java">public MyFrame(String title) {
+    super(title);
+    initOutterPanels();
+    initButtons();
+    initListeners();
+}
+
+private void initListeners() {
+    leftButton.addActionListener(new LeftButtonListener());
+    rightButton.addActionListener(new RightButtonListener());
+}
+
+private void changeParentPanelColor(ActionEvent event) {
+    JButton button = (JButton) event.getSource();
+    Container panel = button.getParent();
+    Color color = JColorChooser.showDialog(panel, "Choose a color", panel.getBackground());
+
+    panel.setBackground(color);
+}
+
+private void showHelloMessage(ActionEvent event) {
+    JButton button = (JButton) event.getSource();
+    JOptionPane.showMessageDialog(button, "Hello!", "Event test", JOptionPane.INFORMATION_MESSAGE);
+}
+
+private class LeftButtonListener implements ActionListener {
+    public void actionPerformed(ActionEvent event) {
+        changeParentPanelColor(event);
+    }
+}
+
+private class RightButtonListener implements ActionListener {
+    public void actionPerformed(ActionEvent event) {
+        changeParentPanelColor(event);
+        showHelloMessage(event);
+    }
+}</code></pre>
+    </details>
+
+
+    <details class="code-block" open>
+        <summary class="caption">Event handling - wxWidgets - my_frame.h</summary>
+        <pre class="language-cpp"><code class="language-cpp">class MyFrame : public wxFrame {
+
+    // You may declare this macro anywhere in the class declaration, but you should prefer writing it at the bottom
+    DECLARE_EVENT_TABLE()
+
+};</code></pre>
+    </details>
+
+    <details class="code-block" open>
+        <summary class="caption">Event handling - wxWidgets - my_frame.cc</summary>
+        <pre class="language-cpp"><code class="language-cpp">#include &lt;wx/colordlg.h&gt;
+#include &lt;wx/msgdlg.h&gt;  // other includes are in previous examples  
+
+BEGIN_EVENT_TABLE(MyFrame, wxFrame)
+
+    EVT_BUTTON(wxID_LEFT_BUTTON, MyFrame::changeParentPanelColor)
+    EVT_BUTTON(wxID_RIGHT_BUTTON, MyFrame::changeParentPanelColor)
+    EVT_BUTTON(wxID_RIGHT_BUTTON, MyFrame::showHelloMessage)
+
+END_EVENT_TABLE()
+
+void MyFrame::changeParentPanelColor(wxCommandEvent &amp;event) {
+    event.Skip();
+
+    wxButton *button = static_cast&lt;wxButton*&gt;(event.GetEventObject());
+    wxWindow *parent = button-&gt;GetParent();
+
+    wxColour colour = wxGetColourFromUser(parent, parent-&gt;GetBackgroundColour());
+
+    parent-&gt;SetBackgroundColour(colour);
+}
+
+void MyFrame::showHelloMessage(wxCommandEvent &amp;event) {
+    event.Skip();
+
+    wxButton *button = static_cast&lt;wxButton*&gt;(event.GetEventObject());
+    wxMessageBox(_T("Hello!"), _T("Event test"), wxOK | wxICON_INFORMATION, button);
+}</code></pre>
+    </details>
+
+    <p class="caption">Sample results - Right button click </p>
+
+    <p class="imagearea"><img alt="Swing and wxWidgets test results" src="evt_table_test.png"/></p>
+    <p class="subtitle">Fig. 4. Swing and wxWidgets results, respectively. Note how both toolkits act differently with
+        regard to centralization on the parent (the right button).</p>
+
+    <p>Event tables are really easy to use once you grasp the basic rules, which are detailed below:</p>
+
+    <ul>
+        <li><span class="monospaced"><strong>DECLARE_EVENT_TABLE()</strong></span> &#8212; you should always declare
+            this macro in the class declaration if you are going to use event tables. You should prefer declaring it at
+            the bottom because there might be unexpected results <a
+                    href="http://www.wxwidgets.org/manuals/2.6/wx_eventhandlingoverview.html#eventintroduction"
+                    target="_blank">otherwise</a>;
+        </li>
+
+        <li><span class="monospaced"><strong>BEGIN_EVENT_TABLE(MyFrame, wxFrame)</strong></span> &#8212; the beginning
+            of the event table, where the two arguments are the class name and the class type;
+        </li>
+        <li><span class="monospaced"><strong>EVT_BUTTON</strong></span> &#8212; the declaration of an event-handler
+            mapping. EVT_BUTTON is a macro used to map a button click event to a member method that will handle this
+            event. This macro is one of the <a
+                    href="http://www.wxwidgets.org/manuals/2.6/wx_wxcommandevent.html#wxcommandevent" target="_blank">wxCommandEvent</a>
+            macros, which define event mappings for other event types. In case you're wondering how you are going to
+            find which macro corresponds to which event, have a look at the wxWidgets <a
+                    href="http://www.wxwidgets.org/manuals/2.6/wx_classref.html#classref" target="_blank">API docs</a>
+            and search for classes with <span class="monospaced">wxFooEvent</span> names;
+        </li>
+
+        <li><em>(cont.)</em> <span class="monospaced"><strong>(wxID_LEFT_BUTTON, </strong></span> &#8212; this is the
+            exact reason why we have assigned IDs to the buttons a few code snippets ago: to map events of this widget
+            to member functions in an event table. Note that not all macros require the ID of the widget that originates
+            the events: some macros like <a class="monospaced"
+                                            href="http://www.wxwidgets.org/manuals/2.6/wx_wxsizeevent.html#wxsizeevent"
+                                            target="_blank">wxSizeEvent</a>'s <span
+                    class="monospaced">EVT_SIZE</span> assume you are handling resize events of the class for which the
+            event table is declared;
+        </li>
+        <li><em>(cont.)</em> <span class="monospaced"><strong>MyFrame::changeParentPanelColor)</strong></span> &#8212;
+            the member function that will handle the event. The restrictions for this method are explained in more
+            detailed below in this list. Have a look at the next section for a discussion of this possibility to use
+            methods instead of objects to handle events;
+        </li>
+
+        <li><span class="monospaced"><strong>END_EVENT_TABLE()</strong></span> &#8212; guess what... it's the end of the
+            event table :-);
+        </li>
+        <li><span
+                class="monospaced"><strong>void MyFrame::changeParentPanelColor(wxCommandEvent &amp;event)</strong></span>
+            &#8212; the rules for member functions that handle events have some similarities with listeners' methods in
+            Java, whereas some others are very different: the method must be void (like Java), can have any name (not
+            like Java), must take an argument of the event type it will handle (like Java) and it must not be virtual
+            (not like Java). To find the exact type of the event object you need, use the same strategy you use for
+            finding event macros: look for <span class="monospaced">wxFooEvent</span> classes in the API docs. If the
+            <span class="monospaced">wxFooEvent</span> class declared an <span class="monospaced">EVT_FOO</span> macro,
+            then the member method that will handle this event has to receive a <span
+                    class="monospaced">wxFooEvent</span> reference;
+        </li>
+
+        <li><span class="monospaced"><strong>event.Skip()</strong></span> &#8212; if you comment this call to see what
+            happens you will see that the next event for this same widget on the table will not be called, i.e., if you
+            comment <span class="monospaced">event.Skip()</span> in <span
+                    class="monospaced">changeParentPanelColor()</span>, <span
+                    class="monospaced">showHelloMessage()</span> will not be called when you press the right button. You
+            have to call <a class="monospaced" href="http://www.wxwidgets.org/manuals/2.6/wx_wxevent.html#wxeventskip"
+                            target="_blank">Skip()</a> to make the event processing system to continue to search for
+            another event handler bound to this event. If you think this is boring, you should try using a single method
+            to handle events of a given widget (something like <span class="monospaced">onLeftButtonClicked()</span>).
+            Then, inside the method, you can distribute the event to the appropriate handler methods (pretty much like
+            the way it was done in the Swing example of this section);
+        </li>
+
+        <li><span class="monospaced"><strong>event.GetEventObject()</strong></span> &#8212; the equivalent to <span
+                class="monospaced">EventObject</span>'s <span class="monospaced"><a
+                href="http://java.sun.com/javase/6/docs/api/java/util/EventObject.html#getSource()" target="_blank">getSource()</a></span>.
+        </li>
+    </ul>
+
+    <p>You may have noticed that the example contains other features of wxWidgets like a color chooser panel (the
+        equivalent to <span class="monospaced">JColorChooser</span>) and a simple dialog message (the equivalent to
+        <span class="monospaced">JOptionPane</span>). These are explained in more detail in the wxWidgets list of
+        convenience <a href="http://www.wxwidgets.org/manuals/2.6/wx_dialogfunctions.html#dialogfunctions"
+                       target="_blank">dialog functions</a>. </p>
+
+    <p>You may <a href="swingwx_event_table.tar.gz">download</a> the documented source code of this section.</p>
+
+    <!-- EVENT HANDLING - EVENT TABLE END -->
+
+    <!-- EVENT HANDLING - CONNECT START -->
+
+    <h2 id="events_connect">Event handling - Connect()</h2>
+
+    <p>Event tables are great because they are lean and save a lot of typing &#8212; but in contrast with what? The
+        other way to handle events: <span class="monospaced">Event</span>'s <span class="monospaced">Connect()/Disconnect()</span>.
+        You may wonder why does anyone bother using it if event tables are so advantageous. There are three basic
+        reasons: first, event tables use macros, and that doesn't fit everyone's taste; secondly, event tables do not
+        allow event handling to take place in some other object; finally, event tables are static and do not allow event
+        handlers to be defined at runtime (which is default in Java). With that in mind, one could say that <span
+                class="monospaced">Connect()/Disconnect()</span> are in fact more familiar to a Swing programmer than
+        event tables, and they don't just <em>look</em> familiar, they <em>do</em> allow you to do everything you do
+        with listeners in Java. In spite of all this versatility and power, it eludes me that the official wxWidgets
+        documentation reserves little room to explain the advantages of this style of event handling, even though the
+        authors themselves <a href="http://wxwidgets.blogspot.com/2007/01/in-praise-of-connect.html" target="_blank">have
+            done so</a>. Without further ado, let's see how it works. </p>
+
+    <p>The following code samples demonstrate a mouse pressed event being handled in Swing and wxWidgets:</p>
+
+    <details class="code-block" open>
+        <summary class="caption">Mouse pressed event - Swing</summary>
+        <pre class="language-java"><code class="language-java">private void initListeners() {
+    leftButton.addActionListener(new LeftButtonListener()); // Declared in previous examples
+    rightButton.addActionListener(new RightButtonListener()); // Declared in previous examples
+    leftPanel.addMouseListener(new LeftPanelMouseListener());
+}	
+
+private void showMouseCoordinates(MouseEvent event) {
+    String message = "The mouse coordinates are [" + event.getX() + ", " + event.getY() + ']';
+    Component parent = (Component) event.getSource();
+
+    JOptionPane.showMessageDialog(parent, message, "Test", JOptionPane.INFORMATION_MESSAGE);
+}
+
+private class LeftPanelMouseListener extends MouseAdapter {
+    public void mousePressed(MouseEvent event) {
+        showMouseCoordinates(event);
+    }
+}</code></pre>
+    </details>
+
+    <details class="code-block" open>
+        <summary class="caption">Mouse pressed event - wxWidgets [using <span class="monospaced">Connect()</span>]
+        </summary>
+        <pre class="language-cpp"><code class="language-cpp">#include &lt;sstream&gt; // other includes are in previous examples
+
+MyFrame::MyFrame(const wxString& title) 
+        : wxFrame((wxFrame*) NULL, wxID_ANY, title),
+          leftPanel(NULL), rightPanel(NULL), leftButton(NULL), rightButton(NULL) {
+
+    initPanels(); // Declared in previous examples
+    initButtons(); // Declared in previous examples
+    initHandlers();
+}
+
+void MyFrame::initHandlers() {
+   leftPanel->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(MyFrame::showMouseCoordinates));
+}
+
+void MyFrame::showMouseCoordinates(wxMouseEvent &amp;event) {
+    event.Skip();
+    wxWindow *parent = static_cast&lt;wxWindow*&gt;(event.GetEventObject());
+    std::ostringstream oss;
+    oss << "The mouse coordinates are [" << event.GetX() << ", " << event.GetY() << "]";
+    wxMessageBox(_T(oss.str()), _T("Connect() test"), wxOK | wxICON_INFORMATION, parent);
+}</code></pre>
+    </details>
+
+    <p class="caption">Sample results - Left button press on left panel</p>
+
+    <p class="imagearea"><img alt="connect() test" src="connect_test.png"/></p>
+    <p class="subtitle">Fig. 5. Showing properties of MouseEvent and the analogous wxMouseEvent </p>
+
+    <p>The <span class="monospaced">Connect()</span> signature in the example deserves special attention: </p>
+
+    <ul>
+        <li><span class="monospaced"><strong>leftPanel->Connect(</strong></span> &#8212; left panel is the component
+            whose events you will listen;
+        </li>
+
+        <li><em>(cont.)</em> <span class="monospaced"><strong>wxEVT_LEFT_DOWN</strong></span> &#8212; the ID of the
+            event you want to listen. To find this ID, look for a <span class="monospaced">wxFooEvent</span> class on
+            the API docs such as <a href="http://www.wxwidgets.org/manuals/2.6/wx_wxmouseevent.html#wxmouseevent"
+                                    target="_blank"><span class="monospaced">wxMouseEvent</span></a> (<a
+                    href="http://www.wxwidgets.org/manuals/2.6/wx_classesbycat.html#classesbycat" target="_blank">this
+                page</a> has all event classes grouped). On the page, look for the right side of the &quot;Event table
+            macros&quot; table: this is where the event IDs are. Note that these are NOT the same as the macro names,
+            which are not preceded by wx;
+        </li>
+
+        <li><em>(cont.)</em> <span
+                class="monospaced"><strong>wxMouseEventHandler(MyFrame::showMouseCoordinates)</strong></span> &#8212;
+            the function that will handle the event, which has to follow all the rules for handler functions discussed
+            on the previous section. The <span class="monospaced">wxMouseEventHandler</span> macro that encloses the
+            function converts this function to the correct type that can handle this event. The rule is pretty simple:
+            for a <span class="monospaced">wxFooEvent</span> you will handle, enclose the function on this argument with
+            a <span class="monospaced">wxFooEventHandler</span> macro.
+        </li>
+
+    </ul>
+
+    <p>if there were an exact Java equivalent of <span class="monospaced">Connect()</span> with those arguments, it
+        would be called &quot;addLeftButtonPressedListener()&quot;, but there's no such possibility. When you care for a
+        single event, or not all events of the listener API, you derive an adapter like <span class="monospaced">MouseAdapter</span>,
+        which provides void implementations of all API of the listener, allowing you to scope the events you're
+        interested in. Contrastingly, wxWidgets allows for event handling on a per-method basis, which can be quite
+        convenient, but it's not that automagic: the class from which this method is member must derive <span
+                class="monospaced">wxEvtHandler</span>, and the method must follow the rules of event handler methods
+        described in the previous section. Since <span class="monospaced">MyFrame</span> derives <span
+                class="monospaced">wxEvtHandler</span> (indirectly), it was OK to leave aside the last two arguments of
+        <a href="http://www.wxwidgets.org/manuals/2.6/wx_wxevthandler.html#wxevthandlerconnect" target="_blank"><span
+                class="monospaced">Connect()</span></a>, but if you want to handle events from another class, these two
+        last arguments must be used. For example: </p>
+
+
+    <details class="code-block" open>
+        <summary class="caption">Handling events from another class - MyFrame [wxWidgets]</summary>
+        <pre class="language-cpp"><code class="language-cpp">void MyFrame::addLeftButtonHandler(wxObjectEventFunction function, wxEvtHandler *handler) const {
+    leftButton->Connect(wxEVT_COMMAND_BUTTON_CLICKED, function, NULL, handler);
+}               
+
+void MyFrame::removeLeftButtonHandler(wxObjectEventFunction function, wxEvtHandler *handler) const {
+    leftButton->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, function, NULL, handler);
+}</code></pre>
+    </details>
+
+    <details class="code-block" open>
+        <summary class="caption">Handling events from another class - MyApp [wxWidgets]</summary>
+        <pre class="language-cpp"><code class="language-cpp">bool MyApp::OnInit() {
+    MyFrame *frame = new MyFrame("wxWidgets test");
+    
+    // MyApp inherits wxEvtHandler, so I didn't have to make the class extend it
+    frame->addLeftButtonHandler(wxCommandEventHandler(MyApp::onFrameLeftButtonClicked), this);
+    
+    frame->Show();
+
+    return true;
+}
+
+void MyApp::onFrameLeftButtonClicked(wxCommandEvent &amp;event) {
+    event.Skip();
+    wxBell();
+}</code></pre>
+    </details>
+
+    <details class="code-block" open>
+        <summary class="caption">Handling events from another class - MyFrame [Swing]</summary>
+        <pre class="language-java"><code class="language-java">public void addLeftButtonActionListener(ActionListener listener) {
+    leftButton.addActionListener(listener);
+}
+
+public void removeLeftButtonActionListener(ActionListener listener) {
+    leftButton.removeActionListener(listener);
+}</code></pre>
+    </details>
+
+    <details class="code-block" open>
+        <summary class="caption">Handling events from another class - MyApp [Swing]</summary>
+        <pre class="language-java"><code class="language-java">
+public static void main(String[] args) throws Exception {
+    MyFrame frame = new MyFrame("Swing test");
+
+    frame.addLeftButtonActionListener(new LeftButtonActionListener());
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+    frame.setVisible(true);
+}
+
+private static class LeftButtonActionListener implements ActionListener {
+    public void actionPerformed(ActionEvent e) {
+        Toolkit.getDefaultToolkit().beep();
+    }
+}</code></pre>
+    </details>
+
+    <!-- EVENT HANDLING - CONNECT END -->
+
+    <!-- RESOURCES START -->
+
+    <h2 id="resources">Resources</h2>
+
+
+    <ul>
+        <li>The installation of wxWidgets comes with many <a href="http://www.wxwidgets.org/manuals/2.6/wx_samples.html"
+                                                             target="_blank">samples</a> that can be easily compiled
+            with a single line in console. I have used them many times to learn about a specific widget;
+        </li>
+        <li>If you want to try wxWidgets on Windows, <a href="http://wxdsgn.sourceforge.net/"
+                                                        target="_blank">wxDevCpp</a> is a nice alternative that requires
+            almost no configuration;
+        </li>
+        <li>There is a <a href="http://wxcode.sourceforge.net/complist.php" target="_blank">repository</a> of components
+            if you need a widget that cannot be found on the regular wxWidgets base;
+        </li>
+
+        <li>If you have serious problems you can try your luck on the <a href="http://wxforum.shadonet.com/"
+                                                                         target="_blank">forums</a></li>
+    </ul>
+
+    <!-- RESOURCES END -->
+
+    <!-- CONCLUSION START -->
+
+    <h2 id="conclusion">Conclusion</h2>
+
+    <p>While using Swing and wxWidgets it's difficult to refrain oneself from comparisons: Java's progress bar can be
+        resized but wxWidgets' cannot, whereas the latter's color dialog has a color picker which the former has not,
+        and so on. Despite the many bindings of wxWidgets, the choice of one over the other is often a choice between
+        Java and C++, which is not always trivial. The objective of this comparative tutorial was not to provide an <em>or</em>,
+        but an <em>and</em> to the toolkit that developers with a Java background have to solve problems. Once both
+        toolkits are learned, the developer will have a <em>choice</em> and will be able to take advantage of the best
+        that both toolkits have to offer. </p>
+
+
+    <!-- CONCLUSION END -->
+
+</main>
+
+
+<div id="footer">
+    <p class="legal">
+        &copy;2005-2026 Dalton Filho. All Rights Reserved. &nbsp;&nbsp;&bull;&nbsp;&nbsp; Design by <a
+            href="http://www.freecsstemplates.org/">Free CSS Templates</a> and <a
+            href="http://www.daltonfilho.com/">Dalton Filho</a> &nbsp;&nbsp;&bull;&nbsp;&nbsp; Icons by <a
+            href="http://famfamfam.com/">FAMFAMFAM</a> and <a href="http://everaldo.com/">Everaldo</a>.
+    </p>
+    <button id="theme-toggle" type="button">🌙 Dark</button>
+</div>
+
+<script>
+    (function () {
+      const root = document.documentElement;
+      const key = "theme";
+      const btn = document.getElementById("theme-toggle");
+
+      function apply(theme) {
+        if (theme === "dark") root.setAttribute("data-theme", "dark");
+        else root.removeAttribute("data-theme");
+        if (btn) btn.textContent = theme === "dark" ? "☀️ Light" : "🌙 Dark";
+      }
+
+      const saved = localStorage.getItem(key);
+      apply(saved === "dark" ? "dark" : "light");
+
+      if (btn) {
+        btn.addEventListener("click", () => {
+          const isDark = root.getAttribute("data-theme") === "dark";
+          const next = isDark ? "light" : "dark";
+          localStorage.setItem(key, next);
+          apply(next);
+        });
+      }
+    })();
+</script>
+
+</body>
+
+</html>

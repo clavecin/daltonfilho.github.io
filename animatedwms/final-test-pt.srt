@@ -1,0 +1,63 @@
+﻿1
+00:00:00,000 --> 00:00:06,304
+Esta é uma aplicação conceito feita em OpenLayers que foi criara para testar camadas WMS animadas providas pelo animador WMS do GeoServer
+
+2
+00:00:06,574 --> 00:00:11,082
+Usuários podem visualizar a evolução de temperaturas máximas num período de 7 dias
+
+3
+00:00:11,082 --> 00:00:16,019
+A renderização de uma camada animada WMS é uma operação custosa ao GeoServer
+
+4
+00:00:22,108 --> 00:00:28,484
+Usuários podem visualizar a evolução de faixas de temperatura específicas
+
+5
+00:00:48,826 --> 00:00:56,507
+Vamos visualizar outras faixas de temperatura em um período mais quente...
+
+6
+00:01:08,731 --> 00:01:14,176
+Um período ainda mais quente...
+
+7
+00:01:15,681 --> 00:01:20,998
+Animações são orquestradas pelos parâmetros aparams e avalues
+
+8
+00:01:20,998 --> 00:01:25,350
+O aparams controla qual propriedade WMS será a base da animação
+
+9
+00:01:25,350 --> 00:01:30,149
+O avalues define o valor desta propriedade para cada frame da animação
+
+10
+00:01:30,149 --> 00:01:33,205
+Nesta aplicação defini aparams como cql_filter
+
+11
+00:01:33,205 --> 00:01:38,029
+O que implica que para cada frame da animação, uma query CQL teve que ser especificada
+
+12
+00:01:47,251 --> 00:01:50,753
+Interpolações foram renderizadas em uma resolução muito baixa (600x259)
+
+13
+00:01:50,753 --> 00:02:00,886
+O que torna as bordas quadriculadas se o zoom força a renderização da camada a uma resolução superior à sua resolução nativa (isto não tem nada a ver com o animador)
+
+14
+00:02:04,127 --> 00:02:10,009
+O comportamento de camadas animadas WMS é idêntico ao de seus equivalentes estáticos
+
+15
+00:02:33,684 --> 00:02:36,250
+Vamos testar uma animação em tela inteira...
+
+16
+00:02:36,250 --> 00:02:40,882
+Parâmetros de inicialização do GeoServer: -Xmx8192m -XX:MaxPermSize=512m

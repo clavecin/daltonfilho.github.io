@@ -1,0 +1,12 @@
+@charset "utf-8";
+
+.pre-title a {
+  float: right;
+  color: #7F7772;
+  text-decoration: none;
+  padding-right: 4px;
+}
+
+.pre-title a:hover {
+	color: orange;
+}

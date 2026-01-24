@@ -1,0 +1,85 @@
+<html lang="en">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type"/>
+    <title>Dalton Filho - Articles &amp; Tutorials</title>
+    <meta content="Java C++ wxWidgets 3D Swing" name="keywords"/>
+    <meta content="articles and tutorials" name="description"/>
+    <link href="content.css" media="screen" rel="stylesheet" type="text/css"/>
+    <link href="dark.css" media="screen" rel="stylesheet" type="text/css"/>
+</head>
+
+<body>
+
+<div id="superheader">
+    <div id="header">
+        <div id="logo">
+            <h1><a href="http://www.daltonfilho.com">Dalton Filho</a></h1>
+        </div>
+    </div>
+
+    <div id="menu">
+        <ul>
+            <li class="current_page_item"><a href="#/">Home</a></li>
+            <li><a href="index.html">Articles</a></li>
+            <li><a href="mailto:aqua_zeros.9@icloud.com">Contact</a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- start page -->
+<main class="container about" id="page">
+
+    <h1>About this site</h1>
+
+    <p>
+        This website is a small collection of articles I wrote between 2005 and 2014, covering niche topics such as the
+        extinct Java3D, an animated temperature map app using a Java/GeoServer/PostGIS/OpenLayers stack and a wxWidgets
+        guide for Swing developers. I will preserve its contents on this site for those who are curious about those
+        technologies and would like to peruse through the details. These tutorials have <i>not</i> been kept up to date
+        with newer versions of libraries and languages used by them, and there's very little, if anything, that would
+        stand up to my scrutiny in regard to development practices, not even the HTML code of this site itself. I'm still
+        very curious about niche tech, with the only difference between me and my younger article writing self being the
+        sheer lack of time to dive into them.
+    </p>
+
+</main>
+
+<div id="footer">
+    <p class="legal">
+        &copy;2005-2026 Dalton Filho. All Rights Reserved. &nbsp;&nbsp;&bull;&nbsp;&nbsp; Design by <a
+            href="http://www.freecsstemplates.org/">Free CSS Templates</a> and <a
+            href="http://www.daltonfilho.com/">Dalton Filho</a> &nbsp;&nbsp;&bull;&nbsp;&nbsp; Icons by <a
+            href="http://famfamfam.com/">FAMFAMFAM</a> and <a href="http://everaldo.com/">Everaldo</a>.
+    </p>
+    <button id="theme-toggle" type="button">🌙 Dark</button>
+</div>
+
+<script>
+    (function () {
+      const root = document.documentElement;
+      const key = "theme";
+      const btn = document.getElementById("theme-toggle");
+
+      function apply(theme) {
+        if (theme === "dark") root.setAttribute("data-theme", "dark");
+        else root.removeAttribute("data-theme");
+        if (btn) btn.textContent = theme === "dark" ? "☀️ Light" : "🌙 Dark";
+      }
+
+      const saved = localStorage.getItem(key);
+      apply(saved === "dark" ? "dark" : "light");
+
+      if (btn) {
+        btn.addEventListener("click", () => {
+          const isDark = root.getAttribute("data-theme") === "dark";
+          const next = isDark ? "light" : "dark";
+          localStorage.setItem(key, next);
+          apply(next);
+        });
+      }
+    })();
+</script>
+
+</body>
+
+</html>

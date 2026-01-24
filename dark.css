@@ -1,0 +1,166 @@
+/* dark.css — overrides only */
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #000000;
+  --text: #c9c2bc;
+  --muted: #a59d97;
+
+  --surface: #171a21;     /* cards/panels */
+  --surface-2: #1f2330;   /* slightly brighter panel */
+  --border: #2a2f3b;
+
+  --heading: #e7e2dd;
+  --link: #e7c27a;        /* warm accent close to your yellows */
+  --link-hover: #ffb15c;
+
+  --focus: #7aa2ff;
+}
+
+:root[data-theme="dark"] body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] h1,
+:root[data-theme="dark"] h2,
+:root[data-theme="dark"] h3,
+:root[data-theme="dark"] h1 a,
+:root[data-theme="dark"] h2 a,
+:root[data-theme="dark"] h3 a,
+:root[data-theme="dark"] #logo h1,
+:root[data-theme="dark"] #logo p,
+:root[data-theme="dark"] #logo a {
+  color: var(--heading);
+}
+
+:root[data-theme="dark"] a {
+  color: var(--link);
+}
+:root[data-theme="dark"] a:hover {
+  color: var(--link-hover);
+}
+
+:root[data-theme="dark"] .article {
+    filter: invert(1);
+}
+
+:root[data-theme="dark"] .article img,
+:root[data-theme="dark"] .article .article-content {
+    filter: invert(1);
+}
+
+:root[data-theme="dark"] blockquote {
+  border-left-color: var(--border);
+}
+
+:root[data-theme="dark"] #sidebar li {
+  background: var(--surface);
+}
+:root[data-theme="dark"] #sidebar li li {
+  background: none;
+  padding-left: 0;
+}
+
+:root[data-theme="dark"] #sidebar h2 {
+  background: var(--surface-2);
+  color: var(--heading);
+}
+
+:root[data-theme="dark"] #menu a {
+  color: var(--muted);
+}
+:root[data-theme="dark"] #menu a:hover {
+  color: var(--link-hover);
+}
+:root[data-theme="dark"] #menu .current_page_item a {
+  color: #222222;
+}
+
+:root[data-theme="dark"] .caption {
+  background-image: none;
+  background-color: var(--surface-2);
+  color: var(--heading);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  height: 23px;
+}
+
+:root[data-theme="dark"] .centered-code {
+  background-color: var(--surface);
+  color: var(--heading);
+  border: 1px solid var(--border);
+}
+
+:root[data-theme="dark"] .temperature-table th {
+  background-color: var(--surface-2);
+  border-color: var(--border);
+  color: var(--heading);
+}
+:root[data-theme="dark"] .temperature-table td {
+  border-color: var(--border);
+}
+:root[data-theme="dark"] .temperature-table tbody tr:nth-child(even) {
+  background: rgba(255,255,255,0.03);
+}
+
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] textarea {
+  background: var(--surface);
+  color: var(--heading);
+  border: 1px solid var(--border);
+}
+:root[data-theme="dark"] input:focus,
+:root[data-theme="dark"] textarea:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+:root[data-theme="dark"] #footer {
+  background: none;
+}
+
+:root[data-theme="dark"] #resolution_eq_image {
+    filter: invert(1)
+}
+
+:root[data-theme="dark"] .pasteCode {
+    background-color: #003300;
+}
+
+:root[data-theme="dark"] .subtitle {
+    color: #EEEEEE;
+}
+
+:root[data-theme="dark"] .rendering {
+    background: white;
+}
+
+:root[data-theme="dark"] .urlparams {
+    background-color: #FF9;
+    color: black;
+}
+
+:root[data-theme="dark"] .urlparams-links a {
+    background-color: #FF9;
+    color: black;
+}
+
+:root[data-theme="dark"] .imagearea + .urlparams-links {
+    margin-top: 45px;
+}
+
+:root[data-theme="dark"] .urlparams + .imagearea {
+    margin-top: 45px;
+}
+
+:root[data-theme="dark"] #superheader {
+    filter: invert(1) hue-rotate(200deg);
+}
+
+
+:root[data-theme="dark"] #logo h1 a {
+    color: #222222; /* Remember this is inverted in the header */
+}

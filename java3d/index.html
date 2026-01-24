@@ -1,0 +1,983 @@
+<html lang="en">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type"/>
+    <title>Dalton Filho - 3D Model Interaction with Java 3D</title>
+
+    <meta content="Java3D tutorial" name="keywords"/>
+    <meta content="A Java3D tutorial that explains how to load a 3D model from disk and interact with it"
+          name="description"/>
+    <link href="../../content.css" media="screen" rel="stylesheet" type="text/css"/>
+    <link href="../dark.css" media="screen" rel="stylesheet" type="text/css"/>
+    <link href="../prism/prism.css" rel="stylesheet">
+    <script defer src="../prism/prism.js"></script>
+</head>
+<body>
+
+<div id="superheader">
+    <div id="header">
+        <div id="logo">
+            <h1><a href="http://www.daltonfilho.com">Dalton Filho</a></h1>
+        </div>
+    </div>
+
+    <div id="menu">
+        <ul>
+            <li><a href="../home.html">Home</a></li>
+            <li class="current_page_item"><a href="../">Articles</a></li>
+            <li><a href="mailto:aqua_zeros.9@icloud.com">Contact</a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- start page -->
+
+<main class="container" id="page">
+
+    <!-- start content -->
+
+    <h1>3D Model Interaction with Java 3D</h1>
+
+    <!-- INDEX START -->
+
+    <p>
+    <h2>Index</h2>
+
+    <div>
+
+        <ol>
+            <li><a href="#About">About</a></li>
+            <li><a href="#Requirements">Requirements</a></li>
+            <li><a href="#Models">Models</a></li>
+            <li><a href="#Visualizing the model">Visualizing the model</a></li>
+            <li><a href="#Loading the 3D model">Loading the model</a></li>
+
+            <li><a href="#Basic setup">Basic setup</a></li>
+            <li><a href="#Getting the scene components">Getting the scene components</a></li>
+            <li><a href="#Transformations">Transformations</a></li>
+            <li><a href="#Hierarchical Model">Hierarquical model</a></li>
+            <li><a href="#Appearance">Appearance</a></li>
+            <li><a href="#Lights">Lights</a></li>
+
+            <li><a href="#Camera">Camera</a></li>
+            <li><a href="#Background">Background</a></li>
+            <li><a href="#Interacting%20with%20the%20model">Interacting with the model</a></li>
+            <li><a href="#Resources">Resources</a></li>
+            <li><a href="#References">References</a></li>
+        </ol>
+    </div>
+
+    </p>
+
+    <!-- INDEX END -->
+
+    <!-- ABOUT START -->
+
+    <h2 id="About">About</h2>
+
+    <p>This tutorial is based on a Computer Graphics assignment for which I was given the task of creating an
+        application in which some articulated animal would walk using a hierarchical model. I had 4 days to complete
+        this assignment, so I had to learn Java 3D quickly, but I ended up having to read fragmented documentation,
+        mostly focused on theory I already knew, with practical examples that were either too simple or too
+        complex. </p>
+    <p>The objective of this tutorial is to provide a guide for writing a basic Java 3D application with a 3D model
+        loaded from disk; it's less generic than the <a href="http://java.sun.com/developer/onlineTraining/java3d/"
+                                                        target="_blank">official Java3D application tutorial</a> and
+        less focused on theory than other tutorials, but more straightforward for the experienced Java developer who
+        already knows basic CG theory and just wants to know what goes where very quickly - going deeper in the APIs is
+        up to you. </p>
+
+
+    <!-- ABOUT END -->
+
+    <!-- REQUIREMENTS START -->
+
+    <h2 id="Requirements">Requirements</h2>
+
+    <div>
+        <ul>
+            <li><a href="http://java.sun.com" target="_blank">JDK</a> version 1.5 or above (the examples use Java 5
+                features)
+            </li>
+            <li><a href="https://java3d.dev.java.net/binary-builds.html" target="_blank">Java 3D</a> version 1.4 or
+                above installed
+            </li>
+
+            <li>Experience with JFC</li>
+            <li>Basic computer graphics knowledge (3D transforms, Illumination types)</li>
+            <li>A 3D model visualizer, like <a href="http://mysite.verizon.net/sfg0000/" target="_blank">PoseRay</a>
+            </li>
+            <li>A 3D model converter like <a href="http://www.tb-software.com/products1.html" target="_blank">3dWin</a>
+                will be useful if you find some interesting 3D model in a format not supported by any Java 3D loader
+            </li>
+        </ul>
+
+    </div>
+
+    <!-- REQUIREMENTS END -->
+
+    <!-- MODELS START -->
+
+    <h2 id="Models"> Models</h2>
+
+    <p>You can download free 3D models on <a href="http://www.turbosquid.com/" target="_blank">TurboSquid</a> or <a
+            href="http://www.3dcafe.com/">3dCafe</a>. Free models may not have the quality you are looking for, so if
+        you are on a serious/commercial project, you should probably consider purchasing a quality model. If you really
+        want to model your objects you can try <a href="http://blender.org/cms/Home.2.0.html">Blender</a>.</p>
+
+
+    <!-- MODELS END -->
+
+    <!-- VISUALIZING THE MODEL START -->
+
+    <h2 id="Visualizing the model">Visualizing the model</h2>
+
+    <p>I will use a <a href="#Resources">cockroach</a> I downloaded from 3dCafe. You can choose another model if you
+        will as long you know what you're doing. I will use PoseRay to visualize the model. PoseRay cannot open every 3D
+        format, so if the format of your model is not supported by PoseRay, you will have to use some other program like
+        3dWin to convert it to a format PoseRay accepts. PoseRay is actually intended to work with Moray and Povray, but
+        it works very well for the purpose of viewing 3D models.</p>
+
+    <table align="center" border="0" cellpadding="0" cellspacing="6" width="680">
+        <tr>
+
+            <td height="25" width="321">
+                <div align="center"><strong>1. Load the model </strong></div>
+            </td>
+            <td width="321">
+                <div align="center"><strong>2. Check the model (shot #1) </strong></div>
+            </td>
+        </tr>
+        <tr>
+            <td height="200">
+                <div align="center"><img border="0" height="175" src="tutorial_capture_002.jpg" width="294"/></div>
+            </td>
+            <td height="200">
+                <div align="center"><a href="tutorial_capture_000.jpg" target="_blank"><img
+                        border="0" height="175" src="tutorial_capture_000_prev.jpg" width="294"/></a></div>
+            </td>
+        </tr>
+        <tr>
+
+            <td height="25">
+                <div align="center"><strong>3. Check the model (shot #2) </strong></div>
+            </td>
+            <td>
+                <div align="center"><strong>4. Check how this model is branched </strong></div>
+            </td>
+        </tr>
+        <tr>
+            <td height="200">
+                <div align="center"><a href="tutorial_capture_001.jpg" target="_blank"><img
+                        border="0" height="175" src="tutorial_capture_001_prev.jpg" width="294"/></a></div>
+            </td>
+            <td height="200">
+                <div align="center"><a href="tutorial_capture_003.jpg" target="_blank"><img
+                        height="176" src="tutorial_capture_003.jpg" width="150"/></a></div>
+            </td>
+        </tr>
+    </table>
+
+
+    <p>These are the pieces that form the complete model. You will have to analyze how your model is branched to see if
+        you can animate or interact with it as you plan. Every component of the model has a name - let it be the parts
+        of your main subject or just other components from the scene. You can get these names on your program, but it's
+        easier to check which part is which here. You can use the update function if the names aren't descriptive
+        enough. You will need to know the name of every part if you plan to texturize or animate them
+        independently. </p>
+    <p>In the end, all that matters is that you save your file in a format that Java loaders will recognize. Preferably,
+        save it in the Wavefront .obj or Lightwave .lwo format because Java 3D comes with loaders for these file formats
+        by default. Other loaders are available, but you will have to download them separately. <a
+                href="http://java3d.j3d.org/utilities/loaders.html">Other Java3D loaders</a></p>
+
+    <!-- VISUALIZING THE MODEL END -->
+
+    <!-- LOADING THE 3D MODEL START -->
+
+    <h2 id="Loading the 3D model">Loading the model</h2>
+
+    <details class="code-block" open>
+        <summary class="caption">Wavefront .obj format</summary>
+        <pre class="language-java"><code class="language-java">import java.io.FileReader;
+import java.io.IOException;
+import com.sun.j3d.loaders.Scene; // Contains the object loaded from disk.
+import com.sun.j3d.loaders.objectfile.ObjectFile; // Loader of .obj models
+
+public static Scene loadScene(String location) throws IOException {
+    ObjectFile loader = new ObjectFile(ObjectFile.RESIZE); 
+    return loader.load(new FileReader(location)); 
+}</code></pre>
+    </details>
+
+
+    <details class="code-block" open>
+        <summary class="caption">Lightwave .lwo format</summary>
+        <pre class="language-java"><code class="language-java">import com.sun.j3d.loaders.lw3d.Lw3dLoader; // Loader of .lwo models
+
+public static Scene loadScene(String location) throws IOException {
+    Lw3dLoader loader = new Lw3dLoader(); 
+    return loader.load(new FileReader(location)); 
+}}</code></pre>
+    </details>
+
+    <p align="left">Recommended reading: <a
+            href="http://download.java.net/media/java3d/javadoc/1.4.0-latest/com/sun/j3d/loaders/objectfile/ObjectFile.html"
+            target="_blank">ObjectFile javadoc</a>, <a
+            href="http://download.java.net/media/java3d/javadoc/1.4.0-latest/com/sun/j3d/loaders/lw3d/Lw3dLoader.html"
+            target="_blank">Lw3dLoader javadoc</a>. </p>
+
+
+    <!-- LOADING THE 3D MODEL END -->
+
+    <!-- BASIC SETUP START -->
+
+    <h2 id="Basic setup">Basic setup</h2>
+
+    <p>Now that you know how to load the model let's see how it will look on your program before proceeding to further
+        manipulation. The most important class of this example is the <span class="style4">SimpleUniverse</span>, which
+        saves you from having to configure the view of your scene. A directional light is added to allow you to view
+        your object (no light and you will see a plain black). You can view the source in <a
+                href="SimpleModelView.html">html</a> or <a href="SimpleModelView.java" target="_blank">download</a> it .
+    </p>
+
+
+    <p class="imagearea"><img alt="Spooky" border="0" height="168" id="spooky" name="spooky" src="roach_blue.png"
+                              width="366"></p>
+    <p class="subtitle">Roach as seen on the example program</p>
+
+    <p>Recommended reading: <a
+            href="http://download.java.net/media/java3d/javadoc/1.4.0-latest/com/sun/j3d/utils/universe/SimpleUniverse.html"
+            target="_blank">SimpleUniverse javadoc</a></p>
+
+    <!-- BASIC SETUP END -->
+
+    <!-- GETTING THE SCENE COMPONENTS START -->
+
+    <h2 id="Getting the scene components">Getting the scene components </h2>
+
+    <p>We need to obtain a reference to every body part we need to manipulate (or just <em>scene component</em>, if you
+        are not using a model of an animal). If you want to create a variable for every component and assign a
+        meaningful name to each one, you will have to know what name maps to what component. The following piece of code
+        demonstrates how to list the name of every named object from the scene: </p>
+
+    <pre class="language-java"><code class="language-java">import javax.media.j3d.Shape3D;
+
+void listSceneNamedObjects(Scene scene) {
+    Map&lt;String, Shape3D&gt; nameMap = scene.getNamedObjects(); 
+
+    for (String name : nameMap.keySet()) {
+        System.out.printf("Name: %s\n", name); 
+    }
+}</code></pre>
+
+    <p>Have in mind that every <span class="monospaced">Shape3D</span> is already part of the <span class="monospaced">BranchGroup</span>
+        of the scene you have loaded. If you want to create another graph with your custom hierarchy, you will have to
+        get a reference to one specific <span class="monospaced">Shape3D</span> and then remove it from the <span
+                class="monospaced">BranchGroup</span>:</p>
+
+    <pre class="language-java"><code class="language-java">import javax.media.j3d.BranchGroup;
+
+/* Obtains a reference to a specific component in the scene */
+Shape3D eyes = nameMap.get("eyes"); 
+
+/* The graph that still contains a reference to "eyes" */
+BranchGroup root = scene.getSceneGroup();
+
+/* Removes "eyes" from this graph */
+root.removeChild(eyes);
+
+/* Now you are free to use "eyes" in your custom graph */</code></pre>
+
+    <p>Always remember you cannot add a component to more than one graph. If one component is already part of a graph
+        and you try to add it to another, you will get a <span class="monospaced">MultipleParentException.</span> If you
+        need the same component in more than one graph, you can clone them.</p>
+
+    <!-- GETTING THE SCENE COMPONENTS END -->
+
+    <!-- TRANSFORMATIONS START -->
+
+    <h2 id="Transformations"> Transformations</h2>
+
+    <p><strong>Basic transformation steps:</strong></p>
+
+    <ol>
+        <li>Add the parts you want to transform to a <span class="monospaced">TransformGroup</span>;</li>
+        <li>Apply the <span class="monospaced">TransformGroup.ALLOW_TRANSFORM_WRITE</span> capability to the group if it
+            wasn't set;
+        </li>
+        <li>Create or use some previously created instance of <span class="monospaced">Transform3D</span>;</li>
+
+        <li>Configure this instance of <span class="monospaced">Transform3D</span> as / if necessary;</li>
+        <li>Apply this <span class="monospaced">Transform3D</span> instance on the <span class="monospaced">TransformGroup</span>
+            instance.
+        </li>
+    </ol>
+
+    <p>That implies you will have to keep references to instances of these classes in order to transform specific nodes
+        of your graph. </p>
+
+
+    <p>The following piece of code demonstrates translation, rotation on multiple axis and non uniform scaling. It uses
+        code created on previous sections.</p>
+
+    <pre class="language-java"><code class="language-java">import javax.vecmath.Vector3f;
+import javax.vecmath.Vector3d;
+import javax.media.j3d.TransformGroup;
+import javax.media.j3d.Transform3D; 
+
+
+Map&lt;String, Shape3D&gt; nameMap = scene.getNamedObjects();
+
+/* Get the node you want to transform */
+Shape3D wing = nameMap.get("wing");
+
+/* Add it to a TransformGroup */
+TransformGroup transformGroup = new TransformGroup();
+transformGroup.addChild(wing);
+
+/* Necessary to allow this group to be transformed */
+transformGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+
+/* Accumulates all transforms */
+Transform3D transforms = new Transform3D();
+
+/* Creates rotation transforms for x, y and z axis */
+Transform3D rotX = new Transform3D();
+Transform3D rotY = new Transform3D();
+Transform3D rotZ = new Transform3D();
+
+rotX.rotX(15D); // +15 degrees on the X axis
+rotY.rotY(30D); // +30 degrees on the Y axis
+rotZ.rotZ(-20D); // -20 degrees on the Z axis
+
+/* Combines all rotation transforms */
+transforms.mul(rotX, rotY);
+transforms.mul(transforms, rotZ);
+
+/* Translation: translates 2 on X, 3 on Y and -10 on Z */
+Vector3f translationVector = new Vector3f(2F, 3F, -10F);
+transforms.setTranslation(translationVector);
+
+/* Non uniform scaling: scales 3x on X, 1x on Y and 2x on Z */
+Vector3d scale = new Vector3d(3D, 1D, 2D);
+transforms.setScale(scale);
+
+/* Apply all transformations */ 
+transformGroup.setTransform(transforms);</code>
+</pre>
+
+    <p align="left">Recommended reading: <a
+            href="http://java.sun.com/products/java-media/3D/forDevelopers/J3D_1_3_API/j3dapi/javax/media/j3d/Transform3D.html"
+            target="_blank">Transform3D javadoc</a>, <a
+            href="http://java.sun.com/products/java-media/3D/forDevelopers/J3D_1_3_API/j3dapi/javax/media/j3d/TransformGroup.html"
+            target="_blank">TransformGroup javadoc </a></p>
+
+
+    <!-- TRANSFORMATIONS END -->
+
+    <!-- HIERARCHICAL MODEL START -->
+
+    <h2 id="Hierarchical Model">Hierarchical Model</h2>
+
+    <p>Now that you have access to all components separately, you can build your custom hierarchical graph. </p>
+    <p>If you have been using Swing or AWT, you are already familiar with the hierarchical model. For instance, you can
+        have a <span class="monospaced">JFrame</span>, which then adds a <span class="monospaced">JPanel</span>, which
+        then adds a <span class="monospaced">JLabel</span> and so forth. Many properties applied on the root are
+        propagated to children, like the <span class="monospaced">isVisible()</span> property. With a 3D model, all
+        transforms and texturizations will be applied to all children (subgraphs). Imagine if you had to apply the same
+        transform over and over to many model parts just to make one movement? </p>
+
+    <p>Java 3D has a class called <span class="monospaced">Group</span>, which is basically an N-Tree: every children
+        has only one parent and an arbitrary number of children. You will use subclasses of <span class="monospaced">Group</span>
+        to create your scenes. Java 3D has also the <span class="monospaced">Leaf</span> class, which is used to
+        construct objects on the tree which wouldn't make sense with children, like background, camera, behaviour, etc.
+    </p>
+
+    <p class="imagearea"><img alt="Scene graph" id="graph" name="graph" src="graph.png"></p>
+    <p class="subtitle">Hierarchical model of the scene</p>
+
+    <p>I will use the <span class="monospaced">TransformGroup</span> class as the default node for building the graph.
+        You may use other subclasses of <span class="monospaced">Group</span> if you have other needs. You may want to
+        keep a reference of every <span class="monospaced">TransformGroup</span> you create if you are going to do some
+        interaction (like making a cockroach walk). </p>
+
+    <p>Note that the code above suffers from the same flaws of programatic GUI construction. You can define the graph in
+        XML and create a custom parser if you need reusability. If possible, you can also edit the model graph in a
+        model editor to avoid having to perform these steps on your program.</p>
+
+    <details class="code-block" open>
+        <summary class="caption">Hierarchical construction of the graph</summary>
+        <pre class="language-java"><code class="language-java">TransformGroup getCockroach(Scene scene) {
+
+    /* Obtain the scene's BranchGroup, from which components are removed */
+    BranchGroup root = scene.getSceneGroup();
+
+    Map&lt;String, Shape3D&gt; nameMap = scene.getNamedObjects();
+
+    /* Remove all children (you don't want a MultiParentException) */
+    root.removeAllChildren();
+
+    /* Construct the groups */
+    TransformGroup leftLegs = new TransformGroup();
+    TransformGroup rightLegs = new TransformGroup();
+    TransformGroup body = new TransformGroup();
+    TransformGroup roach = new TransformGroup();
+
+    /* Build the graph --> LEFT LEGS */
+    leftLegs.addChild(nameMap.get("luplegf"));
+    leftLegs.addChild(nameMap.get("luplegm"));
+    leftLegs.addChild(nameMap.get("luplegr"));
+    leftLegs.addChild(nameMap.get("lmidlegf"));
+    leftLegs.addChild(nameMap.get("lmidlegm"));
+    leftLegs.addChild(nameMap.get("lmidlegr"));
+    leftLegs.addChild(nameMap.get("llowlegf"));
+    leftLegs.addChild(nameMap.get("llowlegm"));
+    leftLegs.addChild(nameMap.get("llowlegr"));
+    leftLegs.addChild(nameMap.get("lfootf"));
+    leftLegs.addChild(nameMap.get("lfootm"));
+    leftLegs.addChild(nameMap.get("lfootr"));
+
+    /* Build the graph --> RIGHT LEGS */
+    rightLegs.addChild(nameMap.get("ruplegf"));
+    rightLegs.addChild(nameMap.get("ruplegm"));
+    rightLegs.addChild(nameMap.get("ruplegr"));
+    rightLegs.addChild(nameMap.get("rmidlegf"));
+    rightLegs.addChild(nameMap.get("rmidlegm"));
+    rightLegs.addChild(nameMap.get("rmidlegr"));
+    rightLegs.addChild(nameMap.get("rlowlegf"));
+    rightLegs.addChild(nameMap.get("rlowlegm"));
+    rightLegs.addChild(nameMap.get("rlowlegr"));
+    rightLegs.addChild(nameMap.get("rfootf"));
+    rightLegs.addChild(nameMap.get("rfootm"));
+    rightLegs.addChild(nameMap.get("rfootr"));
+
+    /* Build the graph --> REMAINING BODY */
+    body.addChild(nameMap.get("antena"));
+    body.addChild(nameMap.get("antenar"));
+    body.addChild(nameMap.get("wing"));
+    body.addChild(nameMap.get("abdomen"));
+    body.addChild(nameMap.get("head"));
+    body.addChild(nameMap.get("prothorx"));
+    body.addChild(nameMap.get("eyes"));
+    body.addChild(nameMap.get("lpalp"));
+    body.addChild(nameMap.get("rpalp"));
+
+    /* Build the graph --> ROACH */
+    roach.addChild(leftLegs);
+    roach.addChild(rightLegs);
+    roach.addChild(body);
+
+    /* Enable transform capability  (it is not enabled by default) */
+    enableTransformCapability(leftLegs, rightLegs, body, roach);
+
+    return roach;
+}
+
+void enableTransformCapability(TransformGroup... parts) {
+    for (TransformGroup part : parts) {
+        part.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+    }
+}</code></pre>
+    </details>
+
+    <p>Note that I have declared the transform groups locally, but on your program you will have to declare them
+        globally or keep a reference to them somewhere if you plan to add interaction to your model. We will configure
+        the camera (actually a view) and add lights <a href="#Lights">later</a>.</p>
+
+    <p>I did a fairly simple hierarchy because the movement this cockroach will do is just as simple. In my assignment I
+        had to do an interaction in which the legs would articulate, which implied in a different (i.e. more complex)
+        setup for the hierarchy of the legs.</p>
+
+    <!-- HIERARCHICAL MODEL END -->
+
+    <!-- APPEARANCE START -->
+
+    <h2 id="Appearance">Appearance</h2>
+
+    <p>The loaded cockroach is quite pale since no material descriptors were associated with it, but this is not a
+        problem, as you can define your textures for each component of your graph. You must read the <a
+                href="http://java.sun.com/products/java-media/3D/forDevelopers/J3D_1_3_API/j3dapi/javax/media/j3d/Material.html"
+                target="_blank">Material javadoc</a> to understand what is being done here. </p>
+    <p>To save some effort, I will declare some constants for ambient, emissive and specular light colors. The user may
+        choose the diffuse color - the light which is emitted when the object is under the influence of some light. </p>
+
+    <pre class="language-java"><code class="language-java">import javax.vecmath.Color3f;
+
+private static final Color3f SPECULAR_LIGHT_COLOR = new Color3f(Color.WHITE);
+private static final Color3f AMBIENT_LIGHT_COLOR = new Color3f(Color.LIGHT_GRAY);
+private static final Color3f EMISSIVE_LIGHT_COLOR = new Color3f(Color.BLACK);</code>
+</pre>
+
+    <p align="left">Now you can create a method that returns an <span class="monospaced">Apperance</span> based on a
+        given <span class="monospaced">Color</span>: </p>
+
+    <pre class="language-java"><code class="language-java">import javax.media.j3d.Material;
+import javax.media.j3d.Appearance;
+
+Appearance getAppearance(Color color) {
+    Appearance app = new Appearance();
+    app.setMaterial(getMaterial(color));
+    return app;
+}
+
+Material getMaterial(Color color) {
+    return new Material(AMBIENT_LIGHT_COLOR, 
+                        EMISSIVE_LIGHT_COLOR, 
+                        new Color3f(color), 
+                        SPECULAR_LIGHT_COLOR, 
+                        100F);
+}</code>
+</pre>
+
+    <p>It's possible to use an image as a texture, but there are some constraints: the image must be equal in width and
+        height and must be a power of 2. If you have ever used Swing, you know you have to pass an instance of <span
+                class="monospaced">Component</span> to <span class="monospaced">MediaTracker</span> if you want to track
+        the loading of an image. Loading a texture uses a similar process:</p>
+
+
+    <pre class="language-java"><code class="language-java">import javax.media.j3d.Texture2D;
+import com.sun.j3d.utils.image.TextureLoader;
+
+Appearance getAppearance(String path, Component canvas, int dimension) {
+    Appearance appearance = new Appearance();
+    appearance.setTexture(getTexture(path, canvas, dimension));
+    return appearance;
+}
+
+Texture getTexture(String path, Component canvas, int dimension) {
+    TextureLoader textureLoader = new TextureLoader(path, canvas);
+
+    Texture2D texture = new Texture2D(Texture2D.BASE_LEVEL, 
+                                      Texture2D.RGB, 
+                                      dimension, 
+                                      dimension); 
+
+    texture.setImage(0, textureLoader.getImage());
+
+    return texture;
+}</code>
+</pre>
+
+    <p align="left">Applying the material:</p>
+
+    <pre class="language-java"><code class="language-java">Scene cockroach = getSceneFromFile("ROACH_mod.obj");
+Map&lt;String, Shape3D&gt; nameMap = cockroach.getNamedObjects();
+
+Color brown = new Color(165, 42, 42);
+Appearance brownAppearance = getAppearance(brown);
+
+nameMap.get("wing").setAppearance(brownAppearance);</code>
+</pre>
+
+    <table align="center" border="0" cellpadding="0" cellspacing="4" width="680">
+
+        <tr>
+            <td colspan="3" height="25">
+                <div align="center"><strong>A material responds to different light positions </strong></div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div align="center"><img height="117" src="tutorial_capture_005_prev.jpg" width="220"/></div>
+            </td>
+            <td>
+                <div align="center"><img height="117" src="tutorial_capture_006_prev.jpg" width="220"/></div>
+            </td>
+            <td>
+                <div align="center"><img height="117" src="tutorial_capture_007_prev.jpg" width="220"/></div>
+            </td>
+        </tr>
+
+    </table>
+
+    <p>As far as I've tested, if you assign a texture instead of a material, the object will not respond to different
+        light configurations, instead it will look like being constantly illuminated.</p>
+
+    <p class="imagearea"><img alt="Properly textured roach" border="0" src="tutorial_capture_004_prev.jpg"></p>
+    <p class="subtitle"><strong>Roach with a texture</strong></p>
+
+    <!-- APPEARANCE END -->
+
+    <!-- LIGHTS START -->
+
+    <h2 id="Lights">Lights</h2>
+
+    <p>As you have seen <a href="#graph">here</a>, we still need to add two lights and one camera (a view). If you have
+        read the <a href="#Basic%20setup">basic setup</a>, you have seen a directional light being added to the root of
+        the scene. It's interesting to make the light go with the roach wherever it goes if you don't want it to get
+        completely black after walking out of the reach of the light - on this case you will need to add your lights as
+        leafs on the same node which contains the object you want to illuminate. On the other hand, if you want your
+        object to become shadowed as it moves, you should add the lights to a node <em>other</em> than the one you used
+        to add the model. </p>
+    <p>Except from finding the right vector to point the light to your object, creating and configuring lights is mostly
+        simple. The following figure demonstrates how to construct an ambient light and a directional light:</p>
+
+    <pre class="language-java"><code class="language-java">import javax.media.j3d.DirectionalLight;
+import javax.media.j3d.AmbientLight;
+
+
+Color3f directionalLightColor = new Color3f(Color.BLUE);
+Color3f ambientLightColor = new Color3f(Color.WHITE);
+Vector3f lightDirection = new Vector3f(-1F, -1F, -1F);
+
+AmbientLight ambientLight = new AmbientLight(ambientLightColor);
+DirectionalLight directionalLight = new DirectionalLight(directionalLightColor, lightDirection);
+
+Bounds influenceRegion = new BoundingSphere();
+
+ambientLight.setInfluencingBounds(influenceRegion);
+directionalLight.setInfluencingBounds(influenceRegion);</code>
+</pre>
+
+    <p>Why do you need an influence region? For the same reason you need clipping: to avoid doing useless calculations.
+        See the <a
+                href="http://java.sun.com/products/java-media/3D/forDevelopers/J3D_1_3_API/j3dapi/javax/media/j3d/Light.html"
+                target="_blank">Light javadoc</a> for more information. </p>
+
+    <!-- LIGHTS END -->
+
+    <!-- CAMERA START -->
+
+    <h2 id="Camera">Camera</h2>
+
+    <p>If you want to view your scene on different angles, you will need a camera. Java 3D uses a view based model -
+        there are no camera objects, but a <span class="monospaced">ViewPlatform</span> object. Whenever you want to
+        change the view of your scene, all you have to do is to change parameters on the <span class="monospaced">ViewPlatform</span>
+        object. If you are using <span class="monospaced">SimpleUniverse</span> to facilitate the view configuration of
+        your program, you don't need to add any <span class="monospaced">ViewPlatform</span> instance to the root node
+        because <span class="monospaced">SimpleUniverse</span> has already added that for you. </p>
+
+    <p>The <span class="monospaced">ViewPlatform</span> created by <span class="monospaced">SimpleUniverse</span> is
+        inside a <span class="monospaced">MultiTransformGroup</span>, which you can obtain via <span class="monospaced">View<em>ing</em>Platform</span>.
+        The following code demonstrates how to obtain this <span class="monospaced">MultiTransformGroup</span> and use
+        it to change the view of the scene:</p>
+
+    <pre class="language-java"><code class="language-java">import com.sun.j3d.utils.universe.ViewingPlatform;
+
+/* You don't have to create a ViewingPlatform if you are using SimpleUniverse */
+ViewingPlatform vp = universe.getViewingPlatform();
+
+/* You don't need to add the VP to a TransformGroup because the VP is already added in a MultiTransformGroup; 
+   0 is the topmost TransformGroup */
+TransformGroup vpGroup = vp.getMultiTransformGroup().getTransformGroup(0);
+
+/* You can transform the view platform as you do with other objects  */
+Transform3D vpTranslation = new Transform3D(); 
+Vector3f translationVector = new Vector3f(1.9F, 1.2F, 6F);
+
+vpTranslation.setTranslation(translationVector);
+vpGroup.setTransform(vpTranslation);
+</code>
+</pre>
+
+    <table align="center" border="0" cellpadding="0" cellspacing="4" width="680">
+        <tr bgcolor="#F2F2F2">
+            <td colspan="2" height="25">
+                <div align="center"><strong>Example: Translation vectors used on the ViewPlatorm </strong></div>
+            </td>
+        </tr>
+        <tr>
+            <td width="334">
+                <div align="center"><img height="152" src="roach_0_m1.2_6.png" width="198"/></div>
+            </td>
+
+            <td width="334">
+                <div align="center"><img height="200" src="roach_1.9_1.2_6.png" width="273"/></div>
+            </td>
+        </tr>
+        <tr bgcolor="#F2F2F2">
+            <td>
+                <div align="center"><strong>0.0, -1.2, 6.0</strong></div>
+            </td>
+            <td>
+                <div align="center"><strong>1.9, 1.2, 6.0</strong></div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div align="center"><img height="78" src="roach_0_1.2_6.png" width="192"/></div>
+            </td>
+
+            <td>
+                <div align="center"><img height="200" src="roach_m1.9_1.2_6.png" width="273"/></div>
+            </td>
+        </tr>
+        <tr>
+            <td bgcolor="#F2F2F2">
+                <div align="center"><strong>0.0, 1.2, 6.0</strong></div>
+            </td>
+            <td bgcolor="#F2F2F2">
+                <div align="center"><strong>-1.9, 1.2, 6.0</strong></div>
+            </td>
+        </tr>
+    </table>
+
+    <p>Do not confuse <span class="monospaced">ViewPlatform</span> with <span class="monospaced">View<em>ing</em>Platform</span>
+        - the latter is a convenience class used to &quot;set up the view side of the graph&quot; - it <em>contains</em>
+        a <span class="monospaced">ViewPlatform</span>.</p>
+
+    <p align="left">Recommended reading: <a
+            href="http://download.java.net/media/java3d/javadoc/1.4.0-latest/com/sun/j3d/utils/universe/ViewingPlatform.html"
+            target="_blank">ViewingPlatform javadoc</a>, <a
+            href="http://download.java.net/media/java3d/javadoc/1.4.0-latest/javax/media/j3d/ViewPlatform.html"
+            target="_blank">ViewPlatform javadoc </a></p>
+
+    <!-- CAMERA END -->
+
+    <!-- BACKGROUND START -->
+
+    <h2 id="Background">Background</h2>
+
+    <p>Unless you want your background to be plain black, you should specify one. Just remember to always add the
+        background to the root node of your scene; add it anywhere else and you will get an undesirable <a
+                class="classname"
+                href="http://java.sun.com/products/java-media/3D/forDevelopers/J3D_1_3_API/j3dapi/javax/media/j3d/IllegalSharingException.html"
+                target="_blank">IllegalSharingException</a>. </p>
+
+
+    <p class="caption">Color background</p>
+
+    <pre class="language-java"><code class="language-java">import javax.media.j3d.Background;
+
+
+/* A dull gray background */
+Background background = new Background(new Color3f(Color.LIGHT_GRAY)); 
+
+/* incluencRegion is a BoundingSphere. See the "Lights" section for details */
+background.setApplicationBounds(influenceRegion); 
+
+/* root is a BranchGroup, root node of your Scene object */
+root.addChild(background); 
+</code>
+</pre>
+
+    <details class="code-block" open>
+        <summary class="caption">Image background</summary>
+        <pre class="language-java"><code class="language-java">TextureLoader t = new TextureLoader("leaves.jpg", canvas);
+
+Background background = new Background(t.getImage()); 
+background.setImageScaleMode(Background.SCALE_REPEAT); // Tiles the image
+background.setApplicationBounds(influenceRegion); 
+
+root.addChild(background);</code></pre>
+    </details>
+
+    <p>This static background is quite boring. If you are looking for something more interesting, such as a celestial
+        sphere, you should use apply a geometry to a background. You can find examples on <a
+                href="http://www.java2s.com/Code/Java/3D/BackgroundGeometry.htm" target="_blank">Java2S</a> website.
+    </p>
+
+
+    <p>Recommended reading: <a
+            href="http://java.sun.com/products/java-media/3D/forDevelopers/J3D_1_3_API/j3dapi/javax/media/j3d/Background.html"
+            target="_blank">Background javadoc</a></p>
+
+    <!-- BACKGROUND END -->
+
+    <!-- INTERACTING WITH THE MODEL START -->
+
+    <h2 id="Interacting with the model">Interacting with the model</h2>
+
+    <p>Now it's time to use the <span class="monospaced">TransformGroup</span> references you've kept a while ago. You
+        will use them to control the movement of the model. The cockroach will do a very silly movement: the left legs
+        will move forward while the right legs stand still, then the right legs move forward while left legs stand
+        still; the body will always move a little bit forward on every movement. It's far from realistic, but you can
+        derive more complex movements if you learn this one. (If you're concerned, as far as my assignment, the movement
+        was more complex than that...)</p>
+
+    <p>The class <span class="monospaced">Behavior</span> will be used to interact with the model. The <span
+            class="monospaced">Behavior</span> class is like a listener - you have to implement it to achieve the
+        desired reaction. It has to be activated every time it's used, or it won't react to the next <em>stimulus</em>.
+        The <em>stimulus</em> used on this section will be a key press, but you can use many others - check <span
+                class="monospaced"><a
+                href="http://java.sun.com/products/java-media/3D/forDevelopers/J3D_1_3_API/j3dapi/javax/media/j3d/WakeupCriterion.html"
+                target="_blank">WakeupCriterion</a></span>'s direct known subclasses to check for other options. After
+        implementing your <span class="monospaced">Behavior</span> subclass, all you have to do is to add it on the node
+        you want to animate. </p>
+
+
+    <details class="code-block" open>
+        <summary class="caption">Instance variables</summary>
+        <pre class="language-java"><code class="language-java">/** Groups that will be animated. */
+TransformGroup[] groups;
+
+/** Used to transform the groups you will animate. */
+Transform3D[] transforms;
+
+/** Used to translate the groups you will animate. */
+Vector3f[] translations;
+
+/** Type of event for which groups will react. */
+WakeupOnAWTEvent wake;
+
+/** Increments 1 every time the user hits a key. */
+int hitCount;
+
+/** Decides which group will be animated based on the hitCount. */
+int bodyPartIndex;</code></pre>
+    </details>
+
+    <details class="code-block" open>
+        <summary class="caption">Constructor</summary>
+        <pre class="language-java"><code class="language-java">SimpleTripodMovement(TransformGroup... groups) {
+    this.groups = groups; // You can add a groups count security check if you will
+
+    wake = new WakeupOnAWTEvent(KeyEvent.KEY_PRESSED); // You decide which key later
+
+    translations = new Vector3f[groups.length];
+    transforms = new Transform3D[groups.length];
+
+    for (int i = 0; i < groups.length; i++) {
+        translations[i] = new Vector3f(0F, 0F, 0F);
+        transforms[i] = new Transform3D();
+    }
+}</code></pre>
+    </details>
+
+    <details class="code-block" open>
+        <summary class="caption">Implementation of <i>initialize</i></summary>
+        <pre class="language-java"><code class="language-java">public void initialize() { // Overriden method
+    wakeupOn(wake); // Inherited method
+}</code></pre>
+    </details>
+
+    <details class="code-block" open>
+        <summary class="caption">Implementation of <i>processStimulus</i></summary>
+        <pre class="language-java"><code class="language-java">public void processStimulus(Enumeration enumeration) {
+    KeyEvent k = (KeyEvent) wake.getAWTEvent()[0];
+
+    /* Moves only if the key pressed is the right directional key and 
+       if the hit count is a multiple of 4 */
+    if ((k.getKeyCode() == KeyEvent.VK_RIGHT) && (hitCount++ % 4 == 0)) {
+
+        /* Selects the body part to be moved */
+        bodyPartIndex = (bodyPartIndex + 1) % 3; 
+
+        /* Moves 0.1 on Z axis */
+        translations[bodyPartIndex].set(translations[bodyPartIndex].x,
+                                        translations[bodyPartIndex].y,
+                                        translations[bodyPartIndex].z + 0.1F); 
+
+        transforms[bodyPartIndex].setTranslation(translations[bodyPartIndex]);
+        groups[bodyPartIndex].setTransform(transforms[bodyPartIndex]);
+    }
+
+
+    /* If you don't put it here, it won't respond the next time you press a key */
+    wakeupOn(wake); 
+}</code></pre>
+    </details>
+
+
+    <details class="code-block" open>
+        <summary class="caption">Applying the behavior</summary>
+        <pre class="language-java"><code class="language-java">/**
+ * Adds a simple tripod movement to the given <code>roach</code>. 
+ *
+ * @param parts parts that will be animated
+ * @param roach supernode of <code>parts</code>
+ * @param bounds world bounds, the smae used for lighting 
+ */
+void addBehavior(TransformGroup[] parts, TransformGroup roach, Bounds bounds) {
+    Behavior behavior = new CockroachBehavior(parts);
+
+    /* Behavior will not work if you don't set the scheduling bounds! */
+    behavior.setSchedulingBounds(bounds);
+
+    roach.addChild(behavior);
+}</code></pre>
+    </details>
+
+    <p>As you have probably noticed, this class is tightly coupled with the objects it animates, but that is
+        predictable; from <span class="monospaced">Behavior</span> javadoc: <em>The application must provide the
+            Behavior object with references to those scene graph elements that the Behavior object will manipulate. The
+            application provides those references as arguments to the behavior's constructor when it creates the
+            Behavior object. Alternatively, the Behavior object itself can obtain access to the relevant scene graph
+            elements either when Java 3D invokes its initialize method or each time Java 3D invokes its processStimulus
+            method.</em></p>
+
+
+    <p>Recommended reading: <a
+            href="http://java.sun.com/products/java-media/3D/forDevelopers/J3D_1_3_API/j3dapi/javax/media/j3d/Behavior.html"
+            target="_blank">Behavior javadoc</a></p>
+
+    <!-- INTERACTING WITH THE MODEL END -->
+
+    <!-- RESOURCES START -->
+
+    <h2 id="Resources">Resources</h2>
+
+    <ul>
+        <li><a href="http://www.the3darchive.com/archive_ROACH.shtml">Cockroach object</a> [you may have to convert it]
+        </li>
+
+        <li><a href="wings.jpg">Cockroach wings texture</a></li>
+        <li><a href="head.jpg">Cockroach head texture</a></li>
+        <li><a href="floor.jpg">Ground texture</a></li>
+        <li><a href="leaves.JPG">Leaves background</a></li>
+        <li><a href="src.rar">Source code</a> [you will need to download the model separately]</li>
+
+        <li><a href="bin.rar">Executable JAR</a> [you will need to download the model separately]</li>
+    </ul>
+
+    <!-- RESOURCES END -->
+
+    <!-- REFERENCES START -->
+
+    <h2 id="References">References</h2>
+
+    <ul>
+        <li><a href="http://java.sun.com/products/java-media/3D/forDevelopers/J3D_1_3_API/j3dapi/index.html"
+               target="_blank">Java3D javadoc</a></li>
+
+        <li><a href="http://java.sun.com/products/java-media/3D/forDevelopers/J3D_1_3_API/j3dapi.zip" target="_blank">com.sun.j3d.*
+            packages javadoc</a> (download)
+        </li>
+        <li><a href="http://java.sun.com/developer/onlineTraining/java3d/" target="_blank">Java3D application tutorial
+            from Sun</a></li>
+        <li><a href="http://www.java2s.com/Code/Java/3D/Abasichierarchicalmodelofthetoppartofahumantorso.htm"
+               target="_blank">A basic hierarchical model of the top part of a human torso </a></li>
+    </ul>
+
+    <!-- REFERENCES END -->
+
+</main>
+
+<div id="footer">
+    <p class="legal">
+        &copy;2005-2026 Dalton Filho. All Rights Reserved. &nbsp;&nbsp;&bull;&nbsp;&nbsp; Design by <a
+            href="http://www.freecsstemplates.org/">Free CSS Templates</a> and <a
+            href="http://www.daltonfilho.com/">Dalton Filho</a> &nbsp;&nbsp;&bull;&nbsp;&nbsp; Icons by <a
+            href="http://famfamfam.com/">FAMFAMFAM</a> and <a href="http://everaldo.com/">Everaldo</a>.
+    </p>
+    <button id="theme-toggle" type="button">🌙 Dark</button>
+</div>
+
+<script>
+    (function () {
+      const root = document.documentElement;
+      const key = "theme";
+      const btn = document.getElementById("theme-toggle");
+
+      function apply(theme) {
+        if (theme === "dark") root.setAttribute("data-theme", "dark");
+        else root.removeAttribute("data-theme");
+        if (btn) btn.textContent = theme === "dark" ? "☀️ Light" : "🌙 Dark";
+      }
+
+      const saved = localStorage.getItem(key);
+      apply(saved === "dark" ? "dark" : "light");
+
+      if (btn) {
+        btn.addEventListener("click", () => {
+          const isDark = root.getAttribute("data-theme") === "dark";
+          const next = isDark ? "light" : "dark";
+          localStorage.setItem(key, next);
+          apply(next);
+        });
+      }
+    })();
+</script>
+
+</body>
+
+</html>

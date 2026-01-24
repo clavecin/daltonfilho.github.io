@@ -1,0 +1,118 @@
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type"/>
+    <title>Dalton Filho - Articles &amp; Tutorials</title>
+    <meta content="Java C++ wxWidgets 3D Swing" name="keywords"/>
+    <meta content="articles and tutorials" name="description"/>
+    <link href="content.css" media="screen" rel="stylesheet" type="text/css"/>
+    <link href="dark.css" media="screen" rel="stylesheet" type="text/css"/>
+</head>
+
+<body>
+
+<div id="superheader">
+    <div id="header">
+        <div id="logo">
+            <h1><a href="http://www.daltonfilho.com">Dalton Filho</a></h1>
+        </div>
+    </div>
+
+    <div id="menu">
+        <ul>
+            <li><a href="home.html">Home</a></li>
+            <li class="current_page_item"><a href="#">Articles</a></li>
+            <li><a href="mailto:aqua_zeros.9@icloud.com">Contact</a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- start page -->
+<div id="page">
+
+    <div class="article">
+        <div class="article-image-area">
+            <a href="animatedwms"><img alt="interpolation" src="interpolation.png"
+                                       style="margin-top: 44px"
+                                       title="An OpenLayers map with animated layers from GeoServer"/></a>
+        </div>
+        <div class="article-content">
+            <h2><a href="animatedwms">An OpenLayers map with animated layers from GeoServer</a></h2>
+
+            <p>
+                An article describing the process of creating an experimental OpenLayers application using animated WMS
+                layers from GeoServer. Data is obtained from NCDC's
+                temperature database. Temperature is interpolated for United States, the interpolation is polygonized
+                and then inserted into a spatial database, from which
+                GeoServer can publish these polygons as an animated WMS layer.
+            </p>
+        </div>
+    </div>
+
+    <div class="article">
+        <div class="article-image-area">
+            <a href="swingwx"><img alt="wxWidgets symbol" src="wxwidgets.png"
+                                   title="wxWidgets for Swing Developers"/></a>
+        </div>
+        <div class="article-content">
+            <h2><a href="swingwx">wxWidgets for Swing Developers </a></h2>
+            <p>A comparative tutorial for developers with a Swing background. The tutorial covers basic setup;
+                application construction; absolute layout; flexible layout; event handling with event tables and event
+                handling with Connect(). Every topic of the tutorial presents the same task with Swing and wxWidgets
+                code to enhance comprehension.</p>
+        </div>
+    </div>
+
+    <div class="article">
+        <div class="article-image-area">
+            <a href="java3d"><img alt="A cockroach" src="cockroach.png" title="3D Model Interaction with Java 3D"/></a>
+        </div>
+        <div class="article-content">
+            <h2><a href="java3d">3D Model Interaction with Java 3D</a></h2>
+            <p>A pragmatic tutorial for developers who need to start developing Java 3D applications quickly. The
+                tutorial covers model visualization; model loading; model branching; hierarchical modeling; views;
+                lights; textures; materials; backgrounds and events. At the end of the tutorial, a cockroach will
+                perform a simple binary movement using concepts presented throughout the lesson. </p>
+        </div>
+    </div>
+
+</div>
+
+<div id="footer">
+    <p class="legal">
+        &copy;2005-2026 Dalton Filho. All Rights Reserved. &nbsp;&nbsp;&bull;&nbsp;&nbsp; Design by <a
+            href="http://www.freecsstemplates.org/">Free CSS Templates</a> and <a
+            href="http://www.daltonfilho.com/">Dalton Filho</a> &nbsp;&nbsp;&bull;&nbsp;&nbsp; Icons by <a
+            href="http://famfamfam.com/">FAMFAMFAM</a> and <a href="http://everaldo.com/">Everaldo</a>.
+    </p>
+    <button id="theme-toggle" type="button">🌙 Dark</button>
+</div>
+
+<script>
+    (function () {
+      const root = document.documentElement;
+      const key = "theme";
+      const btn = document.getElementById("theme-toggle");
+
+      function apply(theme) {
+        if (theme === "dark") root.setAttribute("data-theme", "dark");
+        else root.removeAttribute("data-theme");
+        if (btn) btn.textContent = theme === "dark" ? "☀️ Light" : "🌙 Dark";
+      }
+
+      const saved = localStorage.getItem(key);
+      apply(saved === "dark" ? "dark" : "light");
+
+      if (btn) {
+        btn.addEventListener("click", () => {
+          const isDark = root.getAttribute("data-theme") === "dark";
+          const next = isDark ? "light" : "dark";
+          localStorage.setItem(key, next);
+          apply(next);
+        });
+      }
+    })();
+</script>
+
+</body>
+
+</html>

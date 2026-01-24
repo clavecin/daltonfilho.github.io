@@ -1,0 +1,99 @@
+body, #animated-map {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;    
+    margin: 0;
+    padding: 0;
+}
+ 
+#legend-area {
+    position: absolute;
+    z-index: 1000;
+    bottom: 10px;
+    right: 10px;    
+    opacity: 0.8;
+}
+
+#temperature-panel-button {
+    position: absolute;
+    z-index: 1000;
+    bottom: 10px;
+    left: 10px;
+    background-image: url("thermometer-icon.png");
+    background-color: darkblue;
+    background-size: 32px;
+    width: 40px;
+    height: 40px;
+    background-repeat: no-repeat;
+    border-radius: 40px;
+    background-position-x: 4px;
+    background-position-y: 4px;
+    cursor: pointer;
+    opacity: 0.8;
+    border: 2px solid white;
+}
+
+#temperature-panel {
+    display: none;    
+    overflow: hidden;
+}
+
+#temperature-panel li {
+    list-style: none;
+    height: 34px;
+    font-size: 1.2em;
+    margin-left: -20px;
+    width: 180px;
+}
+
+#temperature-panel > div {
+    float: left;    
+}
+
+#temperature-panel > div h1 {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    padding-bottom: 3px;
+    text-align: center;
+}        
+
+#temperature-panel > div + div {
+    border-left: 1px solid white;
+    margin-left: 20px;
+    padding-left: 20px;            
+}
+
+#period-options {
+    height: 256px;    
+}
+
+#period-options label {
+    font-size: 1.2em;
+    text-align: right;
+    display: inline-block;
+    width: 40px;
+    font-weight: bold;
+}
+
+#period-options div {
+    height: 28px;
+    width: 100%;
+}
+
+#period-options input[type="text"] {
+    text-align: center;
+    width: 90px;    
+}
+
+.ui-dialog {
+    z-index: 1000;    
+}
+
+.ui-widget-content {
+    font-size: 0.8em;    
+}
+
+.icheckbox_line-blue {
+    width: 115px;    
+    color: black !important;
+}

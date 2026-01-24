@@ -1,0 +1,64 @@
+﻿1
+00:00:00,000 --> 00:00:06,304
+This is a concept OpenLayers application created to test animated WMS layers provided by GeoServer's WMS animator
+
+2
+00:00:06,574 --> 00:00:11,082
+Users can visualize the evolution of maximum temperatures over a period of 7 days
+
+3
+00:00:11,082 --> 00:00:16,019
+Rendering an animated WMS layer is a costly operation for GeoServer
+
+4
+00:00:22,108 --> 00:00:28,484
+Users can visualize the evolution of specific temperature ranges
+
+5
+00:00:48,826 --> 00:00:56,507
+Let's visualize other temperature ranges in a warmer period...
+
+6
+00:01:08,731 --> 00:01:14,176
+An even warmer period...
+
+7
+00:01:15,681 --> 00:01:20,998
+Animations are orchestrated by the aparams and avalues parameters
+
+8
+00:01:20,998 --> 00:01:25,350
+The aparams controls which WMS property will be the basis of the animation
+
+9
+00:01:25,350 --> 00:01:30,149
+The avalues defines the value of this property for each frame of the animation
+
+10
+00:01:30,149 --> 00:01:33,205
+In this application I defined aparams as cql_filter
+
+11
+00:01:33,205 --> 00:01:38,029
+Which implies that for every frame of the animation, a CQL query has to be specified
+
+12
+00:01:47,251 --> 00:01:50,753
+Interpolations were rendered at a very low resolution (600x259)
+
+13
+00:01:50,753 --> 00:02:00,886
+So edges are bound to look jagged if zooming forces the layer to be rendered beyond its native resolution (this has nothing to do with the animator)
+
+14
+00:02:04,127 --> 00:02:10,009
+Behavior of animated WMS layers is identical to their static counterparts in OpenLayers...
+
+15
+00:02:33,684 --> 00:02:36,250
+Let's test a full screen animation...
+
+16
+00:02:36,250 --> 00:02:40,882
+GeoServer startup parameters: -Xmx8192m -XX:MaxPermSize=512m
+

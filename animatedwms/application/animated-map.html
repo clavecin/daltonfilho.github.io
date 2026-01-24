@@ -1,0 +1,59 @@
+<!DOCTYPE>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Animated Map</title>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/theme/default/style.tidy.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="skins/line/blue.css" rel="stylesheet" type="text/css" media="screen" />
+    <link href="animated-map.css" rel="stylesheet" type="text/css" media="screen" />
+    
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/OpenLayers.js" type="application/javascript"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" type="application/javascript"></script>    
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js" type="application/javascript"></script>    
+    <script src="icheck.min.js" type="application/javascript"></script>    
+    <script src="animated-map.js" type="application/javascript"></script>
+</head>
+
+<body>
+    <div id="animated-map" />
+    
+    <div id="legend-area">
+        <img src="http://localhost:8080/geoserver/ncdc/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&STRICT=false&style=temperature_range" alt="temperature legend" />
+    </div>
+    
+    <div id="temperature-panel">
+        <div id="temperature-range-options">
+            <h1>Temperature range</h1>
+            
+            <ul>
+                <li><input type="checkbox" name="temperature-range" value="0" checked /><label>Under -10&#xB0;C</label></li>
+                <li><input type="checkbox" name="temperature-range" value="1" checked /><label>-10&#xB0;C to 0&#xB0;C</label></li>
+                <li><input type="checkbox" name="temperature-range" value="2" checked /><label>0&#xB0;C to 10&#xB0;C</label></li>
+                <li><input type="checkbox" name="temperature-range" value="3" checked /><label>10&#xB0;C to 20&#xB0;C</label></li>
+                <li><input type="checkbox" name="temperature-range" value="4" checked /><label>20&#xB0;C to 30&#xB0;C</label></li>
+                <li><input type="checkbox" name="temperature-range" value="5" checked /><label>Over 30&#xB0;C</label></li>
+            </ul>
+        </div>
+        
+        <div id="period-options">
+            <h1>Period</h1>
+            
+            <div>
+                <label>From:</label>
+                <input id="initial-date" type="text" value="01/01/2014" />
+                <input id="initial-doy" type="hidden" value="1" />
+            </div>
+            
+            <div>
+                <label>To:</label>
+                <input id="final-date" type="text" readonly value="01/07/2014" />
+                <input id="final-doy" type="hidden" value="8" />            
+            </div>
+        </div>
+    </div>
+    
+    <div id="temperature-panel-button"></div>
+</body>
+
+</html>

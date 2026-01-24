@@ -1,0 +1,49 @@
+﻿WEBVTT
+
+1
+00:00:09.914 --> 00:00:15.432
+Selecionando todas as faixas de temperatura para a primeira semana de 2014
+
+2
+00:00:15.568 --> 00:00:18.658
+avalues: doy=1,doy=2,doy=3,doy=4,doy=5,doy=6,doy=7
+
+3
+00:00:23.965 --> 00:00:30.131
+Vamos isolar as duas faixas de temperatura mais baixas...
+
+4
+00:00:30.131 --> 00:00:36.203
+avalues: doy=1 and (range_id=0 or range_id=1),doy=2 and (range_id=0 or range_id=1),doy=3 and (range_id=0 or range_id=1),doy=4 and (range_id=0 or range_id=1),doy=5 and (range_id=0 or range_id=1),doy=6 and (range_id=0 or range_id=1),doy=7 and (range_id=0 or range_id=1)
+
+5
+00:00:41.694 --> 00:00:48.811
+avalues: doy=1 and (range_id=2 or range_id=3),doy=2 and (range_id=2 or range_id=3),doy=3 and (range_id=2 or range_id=3),doy=4 and (range_id=2 or range_id=3),doy=5 and (range_id=2 or range_id=3),doy=6 and (range_id=2 or range_id=3),doy=7 and (range_id=2 or range_id=3)
+
+6
+00:00:52.082 --> 00:00:53.912
+O avalues (uma query CQL) ficará ainda mais comprido...
+
+7
+00:00:53.912 --> 00:00:58.746
+Agora testando outro período do ano...
+
+8
+00:00:58.746 --> 00:01:05.647
+avalues: doy=71 and (range_id=2 or range_id=3 or range_id=4),doy=72 and (range_id=2 or range_id=3 or range_id=4),doy=73 and (range_id=2 or range_id=3 or range_id=4),doy=74 and (range_id=2 or range_id=3 or range_id=4),doy=75 and (range_id=2 or range_id=3 or range_id=4),doy=76 and (range_id=2 or range_id=3 or range_id=4),doy=77 and (range_id=2 or range_id=3 or range_id=4)
+
+9
+00:01:08.050 --> 00:01:12.573
+Vamos testar um período mais quente...
+
+10
+00:01:17.835 --> 00:01:28.469
+avalues: doy=190 and range_id=5,doy=191 and range_id=5,doy=192 and range_id=5,doy=193 and range_id=5,doy=194 and range_id=5,doy=195 and range_id=5,doy=196 and range_id=5
+
+11
+00:01:29.889 --> 00:01:34.076
+O zoom funciona como qualquer outra camada WMS estática
+
+12
+00:01:34.076 --> 00:01:39.714
+As bordas são quadriculadas por conta da baixa resolução no qual a interpolação foi realizada

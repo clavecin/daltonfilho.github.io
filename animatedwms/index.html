@@ -1,0 +1,3354 @@
+<html lang="en">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type"/>
+    <title>Dalton Filho - An OpenLayers map with animated layers from GeoServer</title>
+    <meta content="interpolation polygonization WMS geoserver NCDC" name="keywords"/>
+    <meta content="This article describes how to animate individual temperature bands interpolated from NCDC temperature data."
+          name="description"/>
+    <link href="../content.css" media="screen" rel="stylesheet" type="text/css"/>
+    <link href="../dark.css" media="screen" rel="stylesheet" type="text/css"/>
+    <link href="page.css" media="screen" rel="stylesheet" type="text/css"/>
+    <link href="http://highlightjs.org/static/demo/styles/color-brewer.css" media="screen" rel="stylesheet"
+          type="text/css"/>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css" media="screen"
+          rel="stylesheet" type="text/css"/>
+    <link href="../prism/prism.css" rel="stylesheet">
+
+    <script src="../../js/highlight-8.4.min.js" type="text/javascript"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" type="text/javascript"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"
+            type="text/javascript"></script>
+    <script defer src="../prism/prism.js"></script>
+    <script src="page.js" type="text/javascript"></script>
+
+    <style>
+        .pasteCode {
+            display: inline;
+            border: 1px solid #DDDDDD;
+            padding: 3px;
+            background-color: lightyellow;
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        .resolutionAlbum {
+            height: 285px;
+            width: 820px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .resolutionAlbum div {
+            display: inline-block;
+            width: 256px;
+            height: 320px;
+        }
+
+        .resolutionAlbum div+div {
+            margin-left: 20px;
+        }
+
+        .resolutionAlbum div label {
+            font-weight: bold;
+            text-align: center;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .resolutionAlbum div img {
+            box-shadow: 2px 2px 2px #CCCCCC;
+        }
+
+        .subtitle {
+            margin-top: 5px;
+        }
+
+        span.pre-title {
+            font-family: Geneva, Arial, Helvetica, sans-serif;
+            font-weight: bold;
+            display: inline-block;
+            border-bottom: 1px solid #DDDDDD;
+            width: 100%;
+            padding-bottom: 0.3em;
+        }
+
+        .temperature-table {
+            width: 200px;
+            display: table;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 10px;
+            font: 13px "Trebuchet MS", Arial, Helvetica, sans-serif;
+            color: #7F7772;
+            text-align: center;
+        }
+
+        .temperature-table td {
+            border: 1px solid #DDDDDD;
+            border-collapse: collapse;
+        }
+
+        .urlparams {
+          background-color: #FFC;
+          padding: 10px 0px 10px 10px;
+          outline: 1px solid #CCCCCC;
+          font-family: monospace;
+          box-shadow: 0px 4px 4px #DDDDDD;
+        }
+
+        p.urlparams-links a {
+          float: right;
+          position: relative;
+          top: -27px;
+          right: -1px;
+          color: #7F7772;
+          text-decoration: none;
+          background-color: #FFC;
+          padding-left: 4px;
+          padding-right: 4px;
+          border-top: 1px solid #CCCCCC;
+          border-left: 1px solid #CCCCCC;
+          border-right: 1px solid #CCCCCC;
+          border-radius: 7px 7px 0px 0px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="superheader">
+    <div id="header">
+        <div id="logo">
+            <h1><a href="http://www.daltonfilho.com">Dalton Filho</a></h1>
+        </div>
+    </div>
+
+    <div id="menu">
+        <ul>
+            <li><a href="../home.html">Home</a></li>
+            <li class="current_page_item"><a href="../">Articles</a></li>
+            <li><a href="mailto:aqua_zeros.9@icloud.com">Contact</a></li>
+        </ul>
+    </div>
+</div>
+
+<main class="container" id="page">
+
+    <!-- start content -->
+
+    <h1>An OpenLayers map with animated layers from GeoServer</h1>
+
+    <!-- INDEX START -->
+
+    <h2>Index</h2>
+
+    <div>
+
+        <ol>
+            <li><a href="#About">About</a></li>
+            <li><a href="#Requirements">Requirements</a></li>
+            <li><a href="#NCDC">Obtaining temperature data from NCDC</a></li>
+            <li><a href="#ParseSaveStations">Parsing and saving weather stations</a></li>
+            <li><a href="#ParseSaveTemperatures">Parsing and saving temperatures</a></li>
+            <li><a href="#Rendering">Rendering geometries</a></li>
+            <li><a href="#Interpolation">Interpolating temperatures</a></li>
+            <li><a href="#Polygonization">Polygonizing interpolated bitmaps</a></li>
+            <li><a href="#GeoServer">Animating interpolations on GeoServer</a></li>
+            <li><a href="#Conclusion">Conclusion</a></li>
+        </ol>
+    </div>
+
+    <!-- INDEX END -->
+
+    <!-- ABOUT START -->
+
+    <h2 id="About">About</h2>
+
+    <p>
+        When I first heard about <a href="http://docs.geoserver.org/stable/en/user/tutorials/animreflector.html"
+                                    target="_blank">WMS animations on GeoServer</a> I was very curious to test how CQL
+        and
+        animated WMS could be combined to create interesting results. The one thing I wanted to test the most was
+        whether I could use CQL to single out interpolated temperature bands and see them evolving
+        in function of time. I don't want to simply animate a series of rasters because they will contain all bands and
+        CQL will be of no use. To isolate each temperature band, I will need each band to be
+        available in the form of a polygon. Once converted to polygons, these can be published on GeoServer, where I can
+        use the WMS animator and CQL to animate a specific temperature band.
+    </p>
+
+    <!-- ABOUT END -->
+
+    <!-- REQUIREMENTS START -->
+
+    <h2 id="Requirements">Requirements</h2>
+
+    <div>
+        <ul>
+            <li>A modern (post 1.4) <a href="http://java.sun.com" target="_blank">JDK</a></li>
+            <li><a href="http://maven.apache.org/" target="_blank">Maven</a></li>
+            <li>PostgreSQL with <a href="http://postgis.net/" target="_blank">PostGIS</a></li>
+            <li><a href="http://geoserver.org/" target="_blank">GeoServer 2.6</a> or above</li>
+            <li>Experience with Java, Hibernate, GeoTools, GeoServer and GIS concepts (polygons, rasters, geometry data
+                structures, interpolations)
+            </li>
+        </ul>
+    </div>
+
+    <!-- REQUIREMENTS END -->
+
+    <!-- OBTAINING START -->
+
+    <h2 id="NCDC">Obtaining temperature data from NCDC</h2>
+
+    <p>NCDC is a great source for this kind of demonstration because their datasets provide the 3 requisites for our
+        animated interpolation:</p>
+
+    <ol>
+        <li>The location of weather stations
+        <li>The temperature measured by each weather station
+        <li>The time this measurement took place
+    </ol>
+
+    <p>
+        But there's a catch: NCDC has several datasets providing this information. Some of which very thorough. <em>Overwhelmingly</em>
+        thorough. Just browsing through it all can easily consume one's
+        entire day. I found the sweet spot when I stumbled upon the <a href="http://www.ncdc.noaa.gov/isd"
+                                                                       target="_blank">Integrated Surface Database</a>
+        (ISD) which happens to have a &quot;lite&quot;
+        version. According to NCDC, this dataset is &quot;free of duplicate values, sub-hourly data, and complicated
+        flags&quot;. This will help a great deal, but there's nothing to spare us from the chore
+        of parsing the list of weather stations (which are the same for the full and &quot;lite&quot; versions) Finally,
+        while the &quot;lite&quot; version facilitates the parsing of the temperatures, it's
+        still a lot of work. Let's get to it for once!
+    </p>
+
+    <!-- OBTAINING END -->
+
+    <!-- PARSE SAVE STATIONS START -->
+
+    <h2 id="ParseSaveStations">Parsing and saving weather stations</h2>
+
+    <p>To parse and save weather stations into PostGIS we need to execute the following tasks:</p>
+    <ol>
+        <li>Create a table for weather station data. Let's call it <em>station</em> and give it the columns (id, usaf,
+            wban, name, location)
+        <li>Parse the weather stations to create a script to insert data into <em>station</em>
+    </ol>
+
+    <details class="code-block" open>
+        <summary class="caption">Script: geo.station</summary>
+        <pre class="language-sql"><code class="language-sql">CREATE SCHEMA geo AUTHORIZATION "postgres";
+-- You may have to run these two commands below if PostGIS is not yet enabled in your database
+CREATE EXTENSION postgis;
+CREATE EXTENSION postgis_topology;
+
+CREATE TABLE geo.station (
+   id serial NOT NULL, -- Artificial ID
+   usaf character(6) NOT NULL, -- Air Force station ID
+   wban integer NOT NULL, -- NCDC WBAN number
+   name character varying(30) NOT NULL,
+   location geometry NOT NULL,
+   PRIMARY KEY (id)
+) WITH (OIDS = FALSE);</code></pre>
+    </details>
+
+    <p class="caption">Parsing the stations file</p>
+
+    <p>
+        We will now apply a series of regex replacements in the <a
+            href="ftp://ftp.ncdc.noaa.gov/pub/data/noaa/isd-history.txt" target="_blank">stations file</a> (.txt format)
+        in order to transform it into
+        an SQL script with inserts for the <em>station</em> table. I will adopt the dollar ($n) symbol for regex
+        substitutions of capturing groups. If your text editor uses another symbology (such as
+        Notepad2), adapt it accordingly. The sequence of replacements below will transform the stations file into an SQL
+        script:
+    </p>
+
+    <ol>
+        <li>Manually remove the header
+        <li>Remove non-US stations
+            <ol>
+                <li>Find: <code class="pasteCode">^.{43}(?!US).+$</code>
+                <li>Replace with: &lt;leave empty&gt;
+            </ol>
+        <li>Remove stations not belonging to contiguous US and those that do not inform to which state they belong
+            <ol>
+                <li>Find: <code class="pasteCode">^.{48}(\s{2}|AK|HI|AS|MP|PR|VI|UM|GU).*</code>
+                <li>Replace with: &lt;leave empty&gt;
+            </ol>
+        <li>Remove stations that do not inform their longitude and latitude
+            <ol>
+                <li>Find: <code class="pasteCode">^.{50}\s{2,}.*$</code>
+                <li>Replace with: &lt;leave empty&gt;
+            </ol>
+        <li>Remove stations that do not inform their period of record
+            <ol>
+                <li>Find: <code class="pasteCode">^.{76}NO\sDATA.*$</code>
+                <li>Replace with: &lt;leave empty&gt;
+            </ol>
+        <li>Remove blank lines
+            <ol>
+                <li>Find: <code class="pasteCode">^\s*\n</code>
+                <li>Replace with: &lt;leave empty&gt;
+            </ol>
+        <li>Create all inserts:
+            <ol>
+                <li>Find: <code class="pasteCode">^(\w+)\s(\w+)\s(.{30}).{8}\+?(-?\d+\.\d+)\s\+?(-?\d+\.\d+).*$</code>
+                <li>Replace with: <code class="pasteCode">INSERT INTO geo.station (usaf, wban, name, location) VALUES
+                    ('$1', $2, trim('$3'), ST_SetSRID(ST_MakePoint($5, $4), 4326));</code>
+            </ol>
+        <li>Escape single quotes
+            <ol>
+                <li>Find: <code class="pasteCode">([\w\s])'([\w\s])</code>
+                <li>Replace with: <code class="pasteCode">$1''$2</code>
+            </ol>
+    </ol>
+
+    <p>
+        The file is now ready to run in your favorite SQL client. This will populate the <em>station</em> table. If you
+        want to skip the parsing and you don't care about having outdated data, you can
+        download my <a href="station.sql" target="_new">resulting script</a>.
+    </p>
+
+    <div class="imagearea">
+        <img alt="Weather stations" src="stations.png" title="Weather stations across United States"/>
+    </div>
+    <p class="subtitle">
+        Stations rendered by WMS on GeoServer. United States shapefile provided by <a
+            href="https://www.census.gov/geo/maps-data/data/tiger-line.html" target="_blank" title="TIGER/Line?">census.gov</a>
+    </p>
+
+    <!-- PARSE SAVE STATIONS END -->
+
+    <!-- PARSE SAVE TEMPERATURES START -->
+
+    <h2 id="ParseSaveTemperatures">Parsing and saving temperatures</h2>
+
+    <p>
+        Unlike the stations file which contained information from all stations in one monolithic file, parsing the
+        temperatures measured by each station will require you to download one compressed archive
+        <em>per station-year</em>. If you completed the previous section, you know you're in for almost 4000 downloads
+        -- <em>if</em> you just download the right files, otherwise it's a lot more! Each and
+        every one of these 4000 archives will have to be uncompressed and processed. To parse and save temperatures into
+        postgres we need to execute the following tasks:
+    <ol>
+        <li>Create a table for temperature data. Let's call it <em>temperature</em> and give it the columns (id,
+            station_id, measurement_date, min_temp, max_temp)
+        <li>Prepare a script containing the URLs of the station-year archives to be downloaded (we don't want to
+            download archives of stations we are not going to use)
+        <li>Unzip all downloaded archives
+        <li>Process each and every station-year file to create one monolithic script to insert data into the <em>temperature</em>
+            table
+    </ol>
+
+    <details class="code-block" open>
+        <summary class="caption">Script: geo.temperature</summary>
+        <pre class="language-sql"><code class="language-sql">CREATE TABLE geo.temperature (
+  id bigserial NOT NULL,
+  station_id serial NOT NULL,
+  measurement_date date NOT NULL,
+  min_temp decimal(3,1) NOT NULL,
+  max_temp decimal(3,1) NOT NULL,
+  CONSTRAINT temperature_pkey PRIMARY KEY (id),
+  CONSTRAINT temperature_station_id_fkey FOREIGN KEY (station_id)
+      REFERENCES geo.station (id) MATCH SIMPLE
+      ON UPDATE CASCADE ON DELETE CASCADE
+) WITH (OIDS=FALSE);</code></pre>
+    </details>
+
+    <p class="caption">Downloading station-year archives</p>
+
+    <p>
+        All you have to do to create a wget-friendly list of URLs is to create a query on the <em>station</em> table to
+        provide this list. If you are using pgAdmin, you can easily export the result of the
+        query below to a file by pressing F8 into this query below. Just remember to select "no quoting" radio and to
+        unmark the "column names" checkbox. In the example below I used the year of 2014, but
+        the choice was arbitrary.
+    </p>
+
+    <pre class="language-sql"><code class="language-sql">SELECT 'ftp://ftp.ncdc.noaa.gov/pub/data/noaa/isd-lite/2014/' || usaf || '-' || lpad(wban::text, 5, '0') || '-2014.gz'
+FROM geo.station;</code></pre>
+
+    <p>Once you created a file with the urls resulting from the query above (in my case, I used pgAdmin to export it to
+        a "downloads.txt" file), you can simply call wget to download it all for you:</p>
+
+    <pre class="language-sql"><code class="language-bash">wget -i downloads.txt -nc</code></pre>
+
+    <p>
+        Now that you have downloaded the archives, you might have noticed that there are less archives than the number
+        of stations you've inserted into <em>station</em>. NCDC has a detailed list of which
+        stations have data, but for the sake of simplicity of this demonstration I preferred to just let wget ignore the
+        missing station-year archives. Finally, you just have to decompress all archives you
+        downloaded:
+    </p>
+
+    <pre class="language-sql"><code class="language-bash">gzip -d *.gz</code></pre>
+
+    <p class="caption">Parsing and saving temperatures from station-year archives</p>
+
+    <p>Parsing the temperature archives will require an additional effort when compared with the parsing of the station
+        file. Because these station-year archives contain hourly values and we only
+        want the minimum and maximum temperatures, these min-max values will have to be computed before the script is
+        generated. There are several ways to do it with several scripting languages, but I will
+        use Java because it is the most agnostic tool to use in this article (though not necessarily the cleanest) What
+        this little throw-away program will do is:</p>
+    <ol>
+        <li>Process every station-year file in a given directory
+        <li>Compute the minimum and maximum temperature for every day in the station-year file
+        <li>Generate an SQL insert for every day in the station-year file
+    </ol>
+
+    <p>The Java code below does the 3 tasks of the list:</p>
+
+    <details class="code-block">
+        <summary class="caption">Script: geo.station</summary>
+        <pre class="language-java"><code class="language-java">/** Extracts the following groups: (1) year (2) month (3) day (4) temperature */
+private static final Pattern PATTERN = Pattern.compile(&quot;^(\\d{4})\\s(\\d{2})\\s(\\d{2})\\s\\d{2}\\s+(-?\\d+).*$&quot;);
+
+/** INSERT-SELECT because we're using artificial IDs. */
+private static final String INSERT_PATTERN = &quot;INSERT INTO geo.temperature (station_id, measurement_date, min_temp, max_temp) &quot;
+                                           + &quot;SELECT id, '%s', %s, %s &quot;
+                                           + &quot;FROM geo.station &quot;
+                                           + &quot;WHERE usaf = '%s' AND wban = %s;\n&quot;;
+
+/** Missing temperature as defined in ftp://ftp.ncdc.noaa.gov/pub/data/noaa/isd-lite/isd-lite-format.txt */
+private static final String MISSING_TEMPERATURE = &quot;-9999&quot;;
+
+public static void main(String[] args) throws Exception {
+    File[] stationYearFiles = new File(&quot;directory where you downloaded the station year files...&quot;).listFiles();
+    BufferedWriter writer = new BufferedWriter(new FileWriter(&quot;temperature.sql&quot;));
+    
+    try {
+        for (File stationYearFile : stationYearFiles) {
+            writeIntoScript(writer, stationYearFile);
+            System.out.println(stationYearFile);
+        }
+    } finally {
+        writer.close();
+    }
+}
+
+private static final void writeIntoScript(BufferedWriter writer, File stationYearFile) throws IOException {
+    String[] fileName = stationYearFile.getName().split(&quot;-&quot;);
+    String usaf = fileName[0];
+    String wban = fileName[1];
+    
+    BufferedReader reader = new BufferedReader(new FileReader(stationYearFile));
+    
+    try {
+        String line = reader.readLine();
+        TreeSet&lt;Float&gt; temperatures = new TreeSet&lt;Float&gt;();
+        String lastDate = null;
+        
+        while (line != null) {
+            Matcher matcher = PATTERN.matcher(line);
+
+            if (!matcher.matches()) {
+                throw new IllegalStateException(&quot;Could not find the current date in the file&quot;);
+            }
+            
+            String year = matcher.group(1);
+            String month = matcher.group(2);
+            String day = matcher.group(3);
+            String temperature = matcher.group(4);
+            String date = String.format(&quot;%s-%s-%s&quot;, year, month, day);
+            boolean validTemperature = !MISSING_TEMPERATURE.equals(temperature);
+            boolean changedDate = (lastDate != null) &amp;&amp; !lastDate.equals(date);
+
+            if (changedDate &amp;&amp; !temperatures.isEmpty()) {
+                writeScriptLine(writer, usaf, wban, lastDate, temperatures);
+            }
+            if (validTemperature) {
+                temperatures.add(Float.parseFloat(temperature) / 10F);
+            } 
+            
+            lastDate = date;
+            line = reader.readLine();
+        }
+        
+        if (!temperatures.isEmpty()) {
+            writeScriptLine(writer, usaf, wban, lastDate, temperatures);
+        }
+    } finally {
+        reader.close();
+    }
+}
+
+private static final void writeScriptLine(BufferedWriter writer, String usaf, 
+      String wban, String date, TreeSet&lt;Float&gt; temperatures) throws IOException {
+    
+    Float highestTemp = temperatures.last();
+    Float lowestTemp = temperatures.first();
+    writer.write(String.format(INSERT_PATTERN, date, lowestTemp, highestTemp, usaf, wban));
+    temperatures.clear();
+}</code></pre>
+    </details>
+
+    <p>The output of this program will be a massive 140MB script (for station-year archives of 2014) Get some sleep
+        while it runs!</p>
+
+    <!-- PARSE SAVE TEMPERATURES END -->
+
+    <!-- RENDERING START -->
+
+    <h2 id="Rendering">Rendering geometries</h2>
+
+    <p>
+        Real world coordinates are specified in terms of longitude, latitude and altitude, or just lon-lat if 2D
+        coordinates are sufficient for your system. When the moment comes to display these coordinates you
+        need some function or ratio to convert these real world coordinates to pixel units to allow these coordinates to
+        be rendered by a computer. The ratio that translates real world units to pixel units is called
+        <em>resolution</em>. A resolution is simply the number of map units per pixel. In the illustration below, you
+        can see that the further up you go (towards space) the higher the value of the resolution since you
+        are seeing more map units per pixel. Tiles captured from <a href="http://www.openstreetmap.org" target="_blank">OpenStreetMaps</a>
+        using <a href="http://openlayers.org/" target="_blank">OpenLayers</a>.
+    </p>
+
+    <div class="resolutionAlbum">
+        <div>
+            <img alt="Contains information from OpenStreeMaps, which is made available here under the Open Database License (ODbL)"
+                 src="resolution_a.jpg"
+                 title="Contains information from OpenStreeMaps, which is made available here under the Open Database License (ODbL) - See more at: http://opendatacommons.org/licenses/odbl/1.0/#sthash.CPHbwhKp.dpuf"/>
+            <label>Resolution: 1.40625</label>
+        </div>
+        <div>
+            <img alt="Contains information from OpenStreeMaps, which is made available here under the Open Database License (ODbL)"
+                 src="resolution_b.jpg"
+                 title="Contains information from OpenStreeMaps, which is made available here under the Open Database License (ODbL) - See more at: http://opendatacommons.org/licenses/odbl/1.0/#sthash.CPHbwhKp.dpuf"/>
+            <label>Resolution: 0.703125</label>
+        </div>
+        <div>
+            <img alt="Contains information from OpenStreeMaps, which is made available here under the Open Database License (ODbL)"
+                 src="resolution_c.jpg"
+                 title="Contains information from OpenStreeMaps, which is made available here under the Open Database License (ODbL) - See more at: http://opendatacommons.org/licenses/odbl/1.0/#sthash.CPHbwhKp.dpuf"/>
+            <label>Resolution: 0.3515625</label>
+        </div>
+    </div>
+
+    <p class="caption">Choosing a resolution</p>
+
+    <p>
+        When you decide to interpolate an image (in our case, temperatures across contiguous US), you need to decide how
+        large your image will be. Do you need it to fit an entire screen? An illustration of
+        a weather forecast in a newspaper? Maybe you need to interpolate several resolutions for an interactive GIS. Our
+        goal is to interpolate an <em>animated GIF</em>. That imposes a limit on how large
+        the image can be. GeoServer and current browsers can only do so much in terms of big animated GIFs. If you have
+        too few map units per pixel, depending on how large is the area you want to
+        interpolate, you will need a supercomputer to render the interpolation for just one day since the resulting
+        image may have billions of pixels. With all this in mind and knowing we will have to
+        interpolate the entire contiguous United States, I propose a resolution in which the width of contiguous United
+        States fits the space of <strong>600px</strong>. Height should be proportionate. How
+        do we calculate this height? How do we transform a point defined in longitude and latitude to one in pixels?
+    </p>
+
+    <p class="caption">Transform functions</p>
+
+    <p>
+        To draw and interpolate an image from a geometry object (such as one obtained from a shapefile, database, KML,
+        etc) we need first and foremost a function to transform coordinates defined in
+        longitude and latitude to coordinates defined in pixels. Once we have this function, our program will be able to
+        render the geometry using the discrete units it understands very well: pixels. Let's
+        use the <a href="https://www.census.gov/cgi-bin/geo/shapefiles2014/main" target="_blank">shapefile of United
+        States</a> to obtain this transform function. This shapefile uses the <a
+            href="http://epsg.io/4269" target="_blank">NAD 83</a> (EPSG:4269) projection, so the map units are given in
+        degrees. We will find the width and height of this geometry in degrees (because it's the
+        map unit of NAD 83) and then establish how to transform lon-lat pairs from the geometry into x-y pixels. The
+        small program below finds the longitude and latitude bounds of contiguous United States:
+    </p>
+
+    <details class="code-block">
+        <summary class="caption">Maven dependencies</summary>
+        <pre class="language-xml"><code class="language-xml">&lt;dependency&gt;
+    &lt;groupId&gt;org.geotools&lt;/groupId&gt;
+    &lt;artifactId&gt;gt-cql&lt;/artifactId&gt;
+    &lt;version&gt;${geotools.version}&lt;/version&gt;
+&lt;/dependency&gt;		
+&lt;dependency&gt;
+    &lt;groupId&gt;org.geotools&lt;/groupId&gt;
+    &lt;artifactId&gt;gt-shapefile&lt;/artifactId&gt;
+    &lt;version&gt;${geotools.version}&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+    </details>
+
+    <details class="code-block">
+        <summary class="caption">Code</summary>
+        <pre class="language-java"><code class="language-java">import java.io.File;
+
+import org.geotools.data.FileDataStore;
+import org.geotools.data.FileDataStoreFinder;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.filter.text.ecql.ECQL;
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.opengis.filter.Filter;
+
+public class USShapeReader {
+
+    // Download the shape at https://www.census.gov/cgi-bin/geo/shapefiles2014/main (select &quot;States (and equivalent)&quot;)
+    public static void main(String[] args) throws Exception {
+        FileDataStore store = FileDataStoreFinder.getDataStore(new File(&quot;tl_2014_us_state.shp&quot;));
+        SimpleFeatureSource featureSource = store.getFeatureSource();
+        Filter contiguousStates = ECQL.toFilter(&quot;STUSPS NOT IN ('AK','HI','AS','MP','PR','VI','UM','GU')&quot;);
+        SimpleFeatureCollection features = featureSource.getFeatures(contiguousStates);
+        ReferencedEnvelope envelope = features.getBounds();
+        
+        System.out.printf(&quot;Maximum x: %s%n&quot;, envelope.getMaxX());
+        System.out.printf(&quot;Minimum x: %s%n&quot;, envelope.getMinX());
+        System.out.printf(&quot;Maximum y: %s%n&quot;, envelope.getMaxY());
+        System.out.printf(&quot;Maximum y: %s%n&quot;, envelope.getMinY());
+        System.out.printf(&quot;Width: %s° %n&quot;, envelope.getWidth());
+        System.out.printf(&quot;Height: %s° %n&quot;, envelope.getHeight());
+    }
+    
+}</code></pre>
+    </details>
+
+    <details class="code-block">
+        <summary class="caption">Output</summary>
+        <pre class="language-none"><code class="language-none">Maximum x: -66.88544399999999&#xB0;
+Minimum x: -124.848974&#xB0;
+Maximum y: 49.384358&#xB0;
+Maximum y: 24.396307999999998&#xB0;
+Width: 57.963530000000006&#xB0; 
+Height: 24.98805&#xB0; </code></pre>
+    </details>
+
+
+    <p>
+        Now you have the geographic boundaries of contiguous United States. Previously we have decided our image will
+        have a width of <strong>600px</strong>. The width of <strong>57.963530000000006&#xB0;</strong>
+        spread over <strong>600px</strong> gives us a resolution of <strong>0.09660588333333334333333333333333</strong>
+        degrees per pixel. The height of the image should be proportionate. so the only thing we
+        need to do to find the height of the image in pixels is to divide the height of the geometry by the resolution.
+        <strong>24.98805&#xB0;</strong> divided by <strong>0.09660588333333334333333333333333</strong>
+        gives us a height of <strong>258.65971240881979493039374149714px</strong>. Because there is no such a thing as
+        partial pixel, we will have to round it to <strong>259px</strong>. Yes: this means we will have
+        a sub-pixel error, but for our use case this does not represent a problem.
+    </p>
+
+    <p>
+        Another reminder: the coordinate system of your Java image (such as BufferedImage) always starts at 0 (with y
+        pointing downwards), but the coordinate system of your geometry will start at the minimum x
+        (-124.848974&#xB0;) and minimum y (24.396307999999998&#xB0;), so we will always have to subtract the minimums
+        from whatever coordinate we want to transform. This will give us this very simple formula to
+        transform geographic coordinates into pixel coordinates, where <em>u</em> can be either longitude or latitude:
+    </p>
+
+    <p class="imagearea">
+        <img id="resolution_eq_image" alt="Resolution equation" src="resolution_equation.png" title="Resolution equation"/>
+    </p>
+
+    <p>Time to put this formula to the test -- the program below will render the state of Texas in a 400px wide image
+        using the concepts explained above:</p>
+
+    <details class="code-block">
+        <summary class="caption">TexasRenderer</summary>
+        <pre class="language-java"><code class="language-java">import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+
+import javax.imageio.ImageIO;
+
+import org.geotools.data.FileDataStore;
+import org.geotools.data.FileDataStoreFinder;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.filter.text.cql2.CQL;
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.filter.Filter;
+
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+
+public class TexasRenderer {
+
+    public static void main(String[] args) throws Exception {
+        FileDataStore store = FileDataStoreFinder.getDataStore(new File(&quot;tl_2014_us_state.shp&quot;));
+        SimpleFeatureSource featureSource = store.getFeatureSource();
+        Filter contiguousStates = CQL.toFilter(&quot;STUSPS = 'TX'&quot;);
+        SimpleFeatureCollection features = featureSource.getFeatures(contiguousStates);
+        
+        // Width was arbitrarily defined as 400, then height is calculated to maintain proportions of the original geometry
+        ReferencedEnvelope envelope = features.getBounds();
+        int imageWidth = 400; // Height will be proportionate
+        double resolution = envelope.getWidth() / imageWidth;
+        int imageHeight = Math.round(Math.round(envelope.getHeight() / resolution));
+        
+        // A transparent image of Texas...
+        BufferedImage texas = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = texas.createGraphics();
+        graphics.setColor(Color.BLACK);
+        
+        // Let's render all geometries of Texas (I don't know Texas well enough to assume it has only one contiguous territory)
+        SimpleFeatureIterator iterator = features.features();
+        
+        try {
+            while (iterator.hasNext()) {
+                SimpleFeature feature = iterator.next();
+                Geometry geometry = (Geometry) feature.getDefaultGeometry();
+                Coordinate[] coordinates = geometry.getCoordinates();
+                
+                // These 2 objects below are necessary to create a java.awt.Polygon object 
+                int[] xPoints = new int[coordinates.length];
+                int[] yPoints = new int[coordinates.length];
+                
+                // Converting coordinates one by one...
+                // In Java y points downwards, so we have to invert the y value
+                for (int c = 0; c &lt; coordinates.length; c++) {
+                    xPoints[c] = toPixel(coordinates[c].x, envelope.getMinX(), resolution);
+                    yPoints[c] = imageHeight - toPixel(coordinates[c].y, envelope.getMinY(), resolution); 
+                }
+                
+                graphics.drawPolygon(new java.awt.Polygon(xPoints, yPoints, coordinates.length));
+            }
+        } finally {
+            iterator.close();
+        }
+        
+        ImageIO.write(texas, &quot;PNG&quot;, new File(&quot;texas.png&quot;));
+    }
+    
+    private static final int toPixel(double coordinate, double minCoordinate, double resolution) {
+        return (int) ((coordinate - minCoordinate) / resolution); // Deliberately truncated
+    }
+    
+}</code></pre>
+    </details>
+
+    <details class="code-block">
+        <summary class="caption">Rendered Texas image</summary>
+        <div class="imagearea">
+            <img class="rendering" alt="Texas" src="texas.png"/>
+        </div>
+    </details>
+
+    <p class="caption">A utility class for transformations</p>
+
+    <p>
+        Transforming a (lon,lat) location into an (x,y) pixel and vice-versa will be a common task throughout the
+        remainder of this article, so it is in our best interest to create a utility class for these
+        functions that will be invoked very often. Instead of converting coordinates manually, we will make use of the
+        <a href="http://docs.oracle.com/javase/7/docs/api/java/awt/geom/AffineTransform.html"
+           target="_blank">AffineTransform</a> class which is used by several JTS functions to convert coordinates from
+        one projection to another.
+    </p>
+
+    <details class="code-block">
+        <summary class="caption">TransformUtil</summary>
+        <pre class="language-java"><code class="language-java">import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.GeometryCollection;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LinearRing;
+import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Polygon;
+
+/**
+ * Provides utility methods for converting JTS objects into AWT objects and vice-versa.
+ */
+public class TransformUtil {
+
+    // CONSTRUCTOR *************************************************************
+    
+    /**
+     * Prevents this object from being created.
+     */
+    private TransformUtil() {
+        
+    }
+    
+    // UTILITIES ***************************************************************
+    
+    /**
+     * Returns the size in pixels necessary to plot the contents of the given 
+     * &lt;code&gt;envelope&lt;/code&gt; with the given &lt;code&gt;resolution&lt;/code&gt;.
+     * 
+     * @param envelope the envelope of the geometries
+     * @param resolution the number of map units per pixel
+     * @return an array containing the width (index 0) and height (index 1) 
+     */
+    public static final double[] getSizeForResolution(Envelope envelope, double resolution) {
+        return new double[]{envelope.getWidth() / resolution, envelope.getHeight() / resolution};
+    }
+    
+    /**
+     * Long version of {@link #getSizeForResolution(Envelope, double)}.
+     * 
+     * @param envelope the envelope of the geometries
+     * @param resolution the number of map units per pixel
+     * @return an array containing the width (index 0) and height (index 1)
+     */
+    public static final long[] getLongSizeForResolution(Envelope envelope, double resolution) {
+        return new long[]{Math.round(envelope.getWidth() / resolution), Math.round(envelope.getHeight() / resolution)};
+    }
+    
+    /**
+     * Shortcut for: 
+     * &lt;ol&gt;
+     * &lt;li&gt;{@link #getSizeForResolution(Envelope, double)}
+     * &lt;li&gt;{@link #createAffineTransformForSize(Envelope, double, double)}
+     * &lt;/ol&gt;
+     * 
+     * @param envelope the envelope of the geometries
+     * @param resolution the number of map units per pixel
+     * @return a resizing transformation that transforms points inside the given
+     * &lt;code&gt;envelope&lt;/code&gt; to points inside a rectangle with the given 
+     * &lt;code&gt;width&lt;/code&gt; and &lt;code&gt;height&lt;/code&gt;
+     */
+    public static final AffineTransform createAffineTransformForResolution(Envelope envelope, double resolution) {
+        long[] size = getLongSizeForResolution(envelope, resolution);
+        return createAffineTransformForSize(envelope, size[0], size[1]);
+    }
+    
+    /**
+     * Creates the resizing transformation necessary to convert geometries 
+     * inside the given &lt;code&gt;envelope&lt;/code&gt; to a rectangle with the given 
+     * &lt;code&gt;width&lt;/code&gt; and &lt;code&gt;height&lt;/code&gt;.
+     * 
+     * @param envelope the envelope of the geometries
+     * @param width the width in pixels of the destination image
+     * @param height the height in pixels of the destination image
+     * @return a resizing transformation that transforms points inside the given
+     * &lt;code&gt;envelope&lt;/code&gt; to points inside a rectangle with the given 
+     * &lt;code&gt;width&lt;/code&gt; and &lt;code&gt;height&lt;/code&gt;
+     * @see http://www.mail-archive.com/geotools-gt2-users@lists.sourceforge.net/msg08915.html
+     */
+    public static final AffineTransform createAffineTransformForSize(
+            Envelope envelope, long width, long height) {
+        
+        double scalingFactor = Math.min(width / envelope.getWidth(), height / envelope.getHeight());
+        double xoff = -envelope.getMinX() * scalingFactor;
+        double yoff = envelope.getMaxY() * scalingFactor;
+        return new AffineTransform(scalingFactor, 0, 0, -scalingFactor, xoff, yoff);
+    }
+    
+    // GEO TO AWT **************************************************************
+    
+    /**
+     * Converts the collection of geographic polygons into an array of AWT 
+     * polygons. 
+     * 
+     * @param polygons the collection of polygons to be converted
+     * @param transform the transformation that transforms geographic points into
+     * AWT points 
+     * @return an array of AWT polygons
+     */
+    public static final java.awt.Polygon[] toAWTPolygons(MultiPolygon polygons, AffineTransform transform) {
+        int numPolygons = polygons.getNumGeometries();
+        java.awt.Polygon[] awtPolygons = new java.awt.Polygon[numPolygons];
+        
+        for (int polygonIndex = 0; polygonIndex &lt; numPolygons; polygonIndex++) {
+            Polygon polygon = (Polygon) polygons.getGeometryN(polygonIndex);
+            awtPolygons[polygonIndex] = toAWTPolygon(polygon, transform);
+        }
+        
+        return awtPolygons;
+    }
+    
+    /**
+     * Converts a graphic polygon into an AWT polygon.
+     * 
+     * @param polygon the geometric polygon
+     * @param transform the transformation that transforms geographic points into
+     * AWT points
+     * @return an AWT polygon
+     */
+    public static final java.awt.Polygon toAWTPolygon(Polygon polygon, AffineTransform transform) {
+        Coordinate[] coordinates = polygon.getCoordinates();
+        int[] xPoints = new int[coordinates.length];
+        int[] yPoints = new int[coordinates.length];
+        
+        for (int index = 0; index &lt; coordinates.length; index++) {
+            Coordinate coord = coordinates[index];
+            Point2D point = new Point2D.Double(coord.x, coord.y);
+            transform.transform(point, point);
+            xPoints[index] = (int) Math.round(point.getX());
+            yPoints[index] = (int) Math.round(point.getY());
+        }
+        
+        return new java.awt.Polygon(xPoints, yPoints, coordinates.length);
+    }
+        
+    // AWT TO GEO **************************************************************
+
+    /**
+     * Converts a list of AWT rectangles into a list of GEO rectangles. Even
+     * though this method accepts AWT polygons, they must actually be AWT rectangles.
+     * 
+     * @param rectangles a list of polygons with 4 congruent sides
+     * @param transform the transformation that transforms from AWT to GEO; must
+     * be the inverse of the transformation used in {@link #toAWTPolygon(Polygon, AffineTransform)} 
+     * @param factory the geometry factory configured with the correct SRID
+     * @return a list of geographic polygons that are actually rectangles
+     */
+    public static final List&lt;Polygon&gt; toGeographicPolygons(List&lt;java.awt.Polygon&gt; rectangles, 
+            AffineTransform transform, GeometryFactory factory) {
+        
+        List&lt;Polygon&gt; polygons = new LinkedList&lt;Polygon&gt;();
+        
+        for (java.awt.Polygon rectangle : rectangles) {
+            polygons.add(toGeographicRectangle(rectangle, transform, factory));
+        }
+        
+        return polygons;
+    }
+    
+    /**
+     * Converts an AWT rectangle into a geographic polygon. While this method
+     * accepts a {@link java.awt.Polygon} object, it must be in fact a rectangle.
+     * 
+     * @param rectangle a polygon with 4 congruent sides
+     * @param transform the transformation that transforms from AWT to GEO; must
+     * be the inverse of the transformation used in {@link #toAWTPolygon(Polygon, AffineTransform)} 
+     * @param factory the geometry factory configured with the correct SRID
+     * @return a geographic rectangle
+     */
+    public static final Polygon toGeographicRectangle(java.awt.Polygon rectangle,
+            AffineTransform transform, GeometryFactory factory) {
+
+        if (rectangle.npoints == 5) {
+            LinearRing ring = factory.createLinearRing(toCoordinates(rectangle, transform));
+            return factory.createPolygon(ring, null);
+        }
+        
+        throw new IllegalArgumentException(&quot;Provided polygon is not a rectangle&quot;);
+    }
+    
+    /**
+     * Extracts the transformed coordinates from the given AWT polygon. 
+     * 
+     * @param polygon the polygon whose points will be extracted and transformed
+     * @param transform the transformation that transforms from AWT to GEO
+     * @return an array containing the transformed coordinates of the given &lt;code&gt;polygon&lt;/code&gt;
+     */
+    private static final Coordinate[] toCoordinates(java.awt.Polygon polygon, AffineTransform transform) {
+        int[] xPoints = polygon.xpoints;
+        int[] yPoints = polygon.ypoints;
+        int numPoints = polygon.npoints;
+        Coordinate[] coordinates = new Coordinate[numPoints];
+        
+        for (int index = 0; index &lt; numPoints; index++) {
+            Point2D point = new Point2D.Double(xPoints[index], yPoints[index]);
+            transform.transform(point, point);
+            coordinates[index] = new Coordinate(point.getX(), point.getY());
+        }
+        
+        return coordinates;
+    }    
+    
+}</code></pre>
+    </details>
+
+    <!-- RENDERING END -->
+
+    <!-- INTERPOLATION START -->
+
+    <h2 id="Interpolation">Interpolating temperatures</h2>
+
+    <p class="imagearea">
+        <a href="http://commons.wikimedia.org/wiki/File%3AAverage_Annual_High_Temperature_of_the_United_States.jpg"
+           target="_blank"
+           title="By Mamatus (Own work) [CC BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0) or GFDL (http://www.gnu.org/copyleft/fdl.html)], via Wikimedia Commons"><img
+                alt="Average Annual High Temperature of the United States"
+                src="http://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Average_Annual_High_Temperature_of_the_United_States.jpg/512px-Average_Annual_High_Temperature_of_the_United_States.jpg"
+                width="512"/></a>
+    </p>
+    <p class="subtitle">A temperature interpolation</p>
+
+    <p>
+        We now have the basic materials to interpolate temperature. When I say "basic" I <em>really</em> mean it. A real
+        world interpolation would include several more variables (such as altitude) and use
+        other interpolation algorithms (such as kriging), but since the goal of this article is to demonstrate the
+        animation of poligonized temperature bands, we will stick with the basic algorithms since the
+        animation process from start to finish is a lot of work already.
+    </p>
+
+    <p>
+        Let's not forget that the goal of this interpolation is the generation of polygons that will be stylized and
+        animated by GeoServer. Colors will be defined by an SLD at a later moment. What's primordial now
+        is the definition of the temperature ranges. Two different locations will never have exactly the same
+        temperature. If our interpolation were to be gradient (smooth transitions from a color to another)
+        we would never be able to polygonize the temperature bands because there would be no temperature bands. The use
+        of a non-gradient interpolation implies creating a set of temperature ranges that will group
+        similar temperatures together. This grouping creates bands that are polygonizable. We could use a formula to
+        create the ideal number of ranges, but for the sake of simplicity, I will arbitrarily define the
+        temperature ranges as shown below:</p>
+
+    <table class="temperature-table">
+        <thead>
+        <tr>
+            <th>Range</th>
+            <th>Min. temp.</th>
+            <th>Max. temp.</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>1</td>
+            <td>-99&#xB0;C</td>
+            <td>-10&#xB0;C</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>-10&#xB0;C</td>
+            <td>0&#xB0;C</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>0&#xB0;C</td>
+            <td>10&#xB0;C</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>10&#xB0;C</td>
+            <td>20&#xB0;C</td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td>20&#xB0;C</td>
+            <td>30&#xB0;C</td>
+        </tr>
+        <tr>
+            <td>6</td>
+            <td>30&#xB0;C</td>
+            <td>99&#xB0;C</td>
+        </tr>
+        </tbody>
+    </table>
+
+
+    <p>With these temperature ranges we are assuring that every interpolated pixel will have a graphical representation
+        in the final interpolated image. Let us now proceed to the implementation.</p>
+
+    <p class="caption">Data structures</p>
+
+    <p>
+        We want to create polygons with our interpolation, not a simple raster. If we were to interpolate everything
+        into a single image, possibly several different temperature ranges would be rendered
+        in this image, which would make the use of the polygonization algorithm more cumbersome. Instead of testing
+        whether a pixel is painted or not, it would have to know which category a given painted
+        pixel belongs to. I will adopt a simpler approach: one bitmap per temperature range. In this fashion, the only
+        thing the polygonization algorithm will have to know is whether a pixel is painted or
+        not. Because the algorithm only cares whether a pixel is painted or not, we can use a very memory efficient data
+        structure: a bitmap that uses just one bit to inform if a given pixel is painted.
+
+
+        The sole function of this bitmap buffer is to tell us whether a pixel is painted or not. We will need one such
+        buffer per temperature range. This
+        buffer will have the same size of the image. The picture below illustrates this idea:
+    </p>
+
+    <p class="imagearea"><a
+            href="http://commons.wikimedia.org/wiki/File%3AAverage_Annual_High_Temperature_of_the_United_States.jpg"><img
+            alt="Average Annual High Temperature of the United States" src="buffer_example.gif"/></a>
+    </p>
+
+    <p class="subtitle">Each separate bitmap buffer contains data for only one temperature range, so no other metadata
+        is needed</p>
+
+    <p>Once we finish the interpolation process, we can execute the polygonization procedure on each separate buffer.
+        For now, let's first implement the BitMap class:</p>
+
+    <!-- </code></pre></details> -->
+
+    <details class="code-block">
+        <summary class="caption">BitMap</summary>
+        <pre class="language-java"><code class="language-java">/**
+ * A grid that stores its values in bits.  
+ */
+public class BitMap implements Serializable {
+    
+    // CONSTANTS ***************************************************************
+    
+    private static final long serialVersionUID = -5727462114757918945L;
+    
+    private static final int WORD_SIZE = 64;
+    
+    // ATTRIBUTES **************************************************************
+    
+    private long[][] map;
+
+    private int width;
+    
+    private int height;
+
+    private int originalWidth;
+    
+    private int originalHeight;
+    
+    // CONSTRUCTOR *************************************************************
+    
+    public BitMap(int width, int height) {
+        this.width = (int) Math.ceil((float) width / (float) WORD_SIZE);
+        this.height = height;
+        this.originalHeight = height;
+        this.originalWidth = width;
+        
+        map = new long[this.width][this.height];
+    }
+    
+    // ACCESS ******************************************************************
+    
+    /**
+     * Checks if the pixel at the given location is painted.
+     * 
+     * @param x the x coordinate
+     * @param y the y coordinate
+     * @return &lt;code&gt;true&lt;/code&gt; if the pixel is painted; &lt;code&gt;false&lt;/code&gt; 
+     * otherwise
+     */
+    public boolean isPainted(int x, int y) {
+        checkValidCoordinates(x, y);
+        return getBit(x, y);
+    }
+    
+    /**
+     * Paints the pixel at the given location.
+     * 
+     * @param x the x coordinate
+     * @param y the y coordinate
+     */
+    public void paint(int x, int y) {
+        checkValidCoordinates(x, y);
+        setBit(x, y, true);
+    }
+    
+    /**
+     * Erases the pixel at the given location.
+     * 
+     * @param x the x coordinate
+     * @param y the y coordinate
+     */
+    public void erase(int x, int y) {
+        checkValidCoordinates(x, y);
+        setBit(x, y, false);
+    }
+    
+    public int getWidth() {
+        return originalWidth;
+    }
+
+    public int getHeight() {
+        return originalHeight;
+    }
+
+    // UTIL ********************************************************************
+
+    private void setBit(int x, int y, boolean value) {
+        int gridPositionX = getGridPositionX(x);
+        long mask = getMask(getBitPositionInWord(x), value);
+
+        if (value) {
+            map[gridPositionX][y] |= mask;
+        } else {
+            map[gridPositionX][y] &amp;= mask;
+        }
+    }
+    
+    private boolean getBit(int x, int y) {
+        long word = map[getGridPositionX(x)][y];
+        return extractBit(word, getBitPositionInWord(x));
+    }
+    
+    private static final long getMask(int position, boolean value) {
+        long mask = 1L &lt;&lt; (WORD_SIZE - (position + 1));
+        return value ? mask : ~mask;
+    }
+    
+    private static boolean extractBit(long word, int position) {
+        long mask = getMask(position, true);
+        long isolatedBit = (word &amp; mask) &gt;&gt;&gt; (WORD_SIZE - (position + 1));
+        return isolatedBit == 1L;
+    }
+    
+    private static final int getGridPositionX(int x) {
+        return x / WORD_SIZE;
+    }
+    
+    private static final int getBitPositionInWord(int x) {
+        return x % WORD_SIZE;
+    }
+    
+    private void checkValidCoordinates(int x, int y) {
+        if (getGridPositionX(x) &gt;= width) {
+            throw new IllegalArgumentException(&quot;x is larger than the width of this bitmap&quot;);
+        }
+        if (y &gt;= height) {
+            throw new IllegalArgumentException(&quot;y is larger than the height of this bitmap&quot;);
+        }
+    }
+
+}</code></pre>
+    </details>
+
+    <p class="caption">Interpolation classes</p>
+
+    <p>
+        We have the data structure to store the interpolation, now we need to implement the interpolation algorithm
+        itself. There are several generic algorithms to interpolate values in a grid and for our simple use
+        case we could pick an easy one like Euclidian Distance, but the visual results produced are slightly gross so I
+        suggest we use the <a href="http://en.wikipedia.org/wiki/Inverse_distance_weighting" target="_blank">
+        Inverse Distance Weighting</a>, which is still simple but produces more interesting results. The two classes
+        below provide a generic interface (should you want to implement another interpolation algorithm) and
+        the IDW implementation:</p>
+
+    <details class="code-block">
+        <summary class="caption">Interpolator</summary>
+        <pre class="language-java"><code class="language-java">public interface Interpolator {
+
+    /**
+     * Adds a value for a given x-y location in the original coordinate system.
+     * 
+     * @param x the x value in the original coordinate system
+     * @param y the y value in the original coordinate system
+     * @param value the value to be used for this sample
+     */
+    void addSample(double x, double y, double value);
+    
+    /**
+     * Interpolates a value for a given point.
+     * 
+     * @param x the x value in the original coordinate system
+     * @param y the y value in the original coordinate system
+     * @return the interpolated value for the given x-y location
+     */
+    double interpolate(double x, double y);
+    
+}</code></pre>
+    </details>
+
+    <details class="code-block">
+        <summary class="caption">IDWInterpolator</summary>
+        <pre class="language-java"><code class="language-java">import java.awt.geom.Point2D;
+import java.util.HashMap;
+import java.util.Map;
+
+public class IDWInterpolator implements Interpolator {
+
+    // ATTRIBUTES **************************************************************
+    
+    private double power;
+    
+    private Map&lt;Point2D, Double&gt; samples;
+    
+    // CONSTRUCTOR *************************************************************
+    
+    /**
+     * Creates an IDW interpolator. 
+     * 
+     * @param power the power argument of the IDW algorithm
+     */
+    public IDWInterpolator(int power, double resolution) {
+        this.samples = new HashMap&lt;Point2D, Double&gt;();
+        setPower(power);
+    }
+    
+    // ACCESS ******************************************************************
+    
+    private void setPower(int power) {
+        if (isPowerOfTwo(power)) {
+            this.power = power;
+        } else {
+            throwIllegalPowerException();
+        }
+    }
+    
+    public double getPower() {
+        return power;
+    }
+    
+    @Override
+    public void addSample(double x, double y, double value) {
+        addSample(new DirectPosition2D(x, y), value);
+    }
+    
+    public void addSample(Point2D p, double value) {
+        samples.put(p, value);
+        samplesEnvelope.expandToInclude(p.getX(), p.getY());
+    }    
+
+    // INTERPOLATION ***********************************************************
+
+    private double getWeight(Point2D interpolationPoint, Point2D comparedPoint) {
+        return 1D / Math.pow(interpolationPoint.distance(comparedPoint), power);
+    }
+    
+    @Override
+    public double interpolate(double x, double y) {
+    	double sum = 0D;
+        double summedWeights = getWeightsSum(p);
+        
+        for (Point2D samplePoint : samples.keySet()) {
+            sum += (getWeight(p, samplePoint) * samples.get(samplePoint)) / summedWeights;
+        }
+        
+        return sum;
+    }
+    
+    private double getWeightsSum(Point2D p) {
+        double sum = 0D;
+        
+        for (Point2D samplePoint : samples.keySet()) {
+            sum += getWeight(p, samplePoint);
+        }
+        
+        return sum;
+    }
+    
+    // UTIL ********************************************************************
+    
+    private static boolean isPowerOfTwo(int power) {
+        return ((power != 0) &amp;&amp; ((power &amp; (power - 1)) == 0));
+    }
+    
+    // EXCEPTIONS **************************************************************
+    
+    private static void throwIllegalPowerException() {
+        throw new IllegalArgumentException(&quot;'power' argument must be a power of two&quot;);
+    }    
+
+}</code></pre>
+    </details>
+
+    <p class="caption">Putting it all together</p>
+
+    <p>
+        At this stage of the game we have everything we need, that is, data to feed our interpolator and the
+        interpolator itself. If this were a production application, we could interpolate and then polygonize in
+        a sequence, but for didactical reasons (the polygonization procedure has its own section in this article) it
+        will be better to just serialize the buffers so that we can polygonize them later. This is what
+        the program below will do:</p>
+
+    <ul>
+        <li>For every day of the year, do:
+            <ul>
+                <li>Add all stations and their respective maximum temperature measurements to the interpolator as
+                    samples
+                <li>For every pixel (x,y) of the interpolated image, do:
+                    <ul>
+                        <li>Verify if (x,y) is inside the United States polygon. If inside, do:
+                            <ol>
+                                <li>Convert (x,y) into a (lon, lat) value
+                                <li>Interpolate temperature at point (lon, lat)
+                                <li>Find the corresponding buffer for the interpolated temperature and paint pixel (x,y)
+                                    in this buffer
+                            </ol>
+                    </ul>
+                <li>Serialize all buffers to disk
+            </ul>
+    </ul>
+
+    <p>
+        Doing all of the tasks described above will obviously require some database boilerplate, so hold tight. The two
+        classes below map the two tables we created earlier (<code>geo.station</code> and <code>geo.temperature</code>):
+    </p>
+
+    <details class="code-block">
+        <summary class="caption">GeoStation entity</summary>
+        <pre class="language-java"><code class="language-java">import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import org.hibernate.annotations.Type;
+import com.vividsolutions.jts.geom.Geometry;
+
+@Entity
+@Table(schema = "geo", name = "station")
+public class GeoStation {
+
+    @Id
+    private Long id;
+    
+    private String usaf;
+    
+    private String wban;
+    
+    private String name;
+    
+    @Type (type = "org.hibernate.spatial.GeometryType")
+    private Geometry location;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getUsaf() {
+        return usaf;
+    }
+
+    public void setUsaf(String usaf) {
+        this.usaf = usaf;
+    }
+
+    public String getWban() {
+        return wban;
+    }
+
+    public void setWban(String wban) {
+        this.wban = wban;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Geometry getLocation() {
+        return location;
+    }
+
+    public void setLocation(Geometry location) {
+        this.location = location;
+    }
+    
+}</code></pre>
+    </details>
+
+    <details class="code-block">
+        <summary class="caption">Temperature entity</summary>
+        <pre class="language-java"><code class="language-java">import java.util.Date;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+@Entity
+@Table(schema = "geo", name = "temperature")
+public class Temperature {
+
+    @Id
+    private Long id;
+    
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "station_id", referencedColumnName = "id", nullable = false, insertable = false, updatable = false)
+    private GeoStation station;
+    
+    @Column(name = "measurement_date")
+    private Date measurementDate;
+    
+    @Column(name = "min_temp")
+    private Double minTemp;
+    
+    @Column(name = "max_temp")
+    private Double maxTemp;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public GeoStation getStation() {
+        return station;
+    }
+
+    public void setStation(GeoStation station) {
+        this.station = station;
+    }
+
+    public Date getMeasurementDate() {
+        return measurementDate;
+    }
+
+    public void setMeasurementDate(Date measurementDate) {
+        this.measurementDate = measurementDate;
+    }
+
+    public Double getMinTemp() {
+        return minTemp;
+    }
+
+    public void setMinTemp(Double minTemp) {
+        this.minTemp = minTemp;
+    }
+
+    public Double getMaxTemp() {
+        return maxTemp;
+    }
+
+    public void setMaxTemp(Double maxTemp) {
+        this.maxTemp = maxTemp;
+    }
+    
+}</code></pre>
+    </details>
+
+    <p>We need a simple DAO to query the database and return the results in convenient data structures:</p>
+
+    <details class="code-block">
+        <summary class="caption">CommonDAO</summary>
+        <pre class="language-java"><code class="language-java">import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hibernate.Query;
+import org.hibernate.ScrollableResults;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+
+import com.daltonfilho.entity.GeoStation;
+import com.daltonfilho.entity.Temperature;
+
+public class CommonDAO {
+
+    @SuppressWarnings({ &quot;unchecked&quot;, &quot;cast&quot; })
+    public static final Map&lt;Long, GeoStation&gt; findAllStations() {
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+        Transaction t = session.beginTransaction();
+                
+        try {
+            List&lt;GeoStation&gt; geostations = (List&lt;GeoStation&gt;) session.createQuery(&quot;from GeoStation&quot;).list();
+            Map&lt;Long, GeoStation&gt; map = new HashMap&lt;Long, GeoStation&gt;();
+            
+            for (GeoStation station : geostations) {
+                map.put(station.getId(), station);
+            }
+            
+            return map; 
+        } finally {
+            t.rollback();
+        }
+    }
+
+    public static final Map&lt;Long, Temperature&gt; findAllTemperatures(Date date) {
+        StringBuilder sql = new StringBuilder();
+        
+        sql.append(&quot;select s.id, t &quot;);
+        sql.append(&quot;from Temperature t &quot;);
+        sql.append(&quot;join t.station s &quot;);
+        sql.append(&quot;where t.measurementDate = :date &quot;);
+        
+        Session session = HibernateUtil.getSessionFactory().getCurrentSession();
+        Transaction t = session.beginTransaction();
+        
+        try {
+            Query query = session.createQuery(sql.toString());
+            query.setDate(&quot;date&quot;, date);
+            
+            ScrollableResults results = query.scroll();
+            Map&lt;Long, Temperature&gt; resultMap = new HashMap&lt;Long, Temperature&gt;();
+            
+            try {
+                while (results.next()) {
+                    Object[] cols = results.get();
+                    resultMap.put((Long) cols[0], (Temperature) cols[1]);
+                }
+            } finally {
+                results.close();
+            }
+            
+            return resultMap;
+        } finally {
+            t.rollback();
+        }
+    }
+    
+}</code></pre>
+    </details>
+
+    <p class="caption">Implementation</p>
+
+    <p>
+        The code below will interpolate the maximum temperature for all days of the year. Every interpolated day may
+        output one bitmap per temperature range. If there is no temperature
+        in that range, the bitmap will be null, but the array will be serialized regardless. The interpolation procedure
+        involves thousands of stations and is dreadfully slow, which is
+        why I've decided to spawn multiple threads to take care of the process. This will consume 100% of your CPU for
+        several minutes, so don't hold me responsible if it burns!
+    </p>
+
+
+    <details class="code-block">
+        <summary class="caption">Interpolation and serialization of buffers</summary>
+        <pre class="language-java"><code class="language-java">import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
+import java.awt.geom.Point2D;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Map;
+
+import org.geotools.data.FileDataStore;
+import org.geotools.data.FileDataStoreFinder;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.filter.text.cql2.CQLException;
+import org.geotools.filter.text.ecql.ECQL;
+import org.opengis.filter.Filter;
+
+import com.daltonfilho.db.CommonDAO;
+import com.daltonfilho.entity.GeoStation;
+import com.daltonfilho.entity.Temperature;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.Polygon;
+
+public class Interpolation {
+
+    private static final int[] TEMPERATURE_RANGES = {-10, 0, 10, 20, 30, 99};
+    private static final int IMAGE_WIDTH = 600;
+    private static final int IMAGE_HEIGHT = 259;
+    private static final double RESOLUTION = 0.09660588333333334333333333333333;
+    
+    public static void main(String[] args) throws Exception {
+        Map&lt;Long, GeoStation&gt; stations = CommonDAO.findAllStations();
+        ShapeFileData data = readDataFromUSShape();
+        AffineTransform geoToAWT = TransformUtil.createAffineTransformForResolution(data.getEnvelope(), RESOLUTION);
+        AffineTransform awtToGeo = geoToAWT.createInverse();
+        java.awt.Polygon[] awtPolygons = TransformUtil.toAWTPolygons(data.getOriginalPolygon(), geoToAWT);
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        int daysPerProcessor = 365 / availableProcessors; // See code below if you're worried about truncation
+        
+        for (int t = 0, day = 1; t &lt; availableProcessors; t++, day += daysPerProcessor) {
+            InterpolationRunnable interpolation = null;
+            
+            if (t &lt; availableProcessors - 1) {
+                interpolation = new InterpolationRunnable(day, (day + daysPerProcessor) - 1, stations, awtPolygons, awtToGeo);
+            } else { 
+                // The last one should use the remainder
+                interpolation = new InterpolationRunnable(day, 365, stations, awtPolygons, awtToGeo);
+            }
+            
+            new Thread(interpolation).start();
+        }
+    }
+    
+    /**
+     * Interpolates bitmaps based on the samples present in the given &lt;code&gt;interpolator&lt;/code&gt;.
+     * The bitmap's size is {@link #IMAGE_WIDTH}x{@link #IMAGE_HEIGHT}. Only pixels
+     * contained within the given &lt;code&gt;awtPolygons&lt;/code&gt; will be interpolated.
+     */
+    private static final BitMap[] interpolateBitMaps(Interpolator interpolator, 
+            java.awt.Polygon[] awtPolygons, AffineTransform awtToGeo) {
+        
+        BitMap[] bitmaps = new BitMap[TEMPERATURE_RANGES.length]; 
+        
+        for (int x = 0; x &lt; IMAGE_WIDTH; x++) {
+            for (int y = 0; y &lt; IMAGE_HEIGHT; y++) {
+                // We don't need to interpolate outside the United States polygon
+                if (!isPointInside(x, y, awtPolygons)) {
+                    continue;
+                }
+                
+                // Before we interpolate we need to transform (x,y) into geographic coordinates..
+                Point2D geoPoint = awtToGeo.transform(new Point2D.Double(x, y), null);
+                double temperature = interpolator.interpolate(geoPoint.getX(), geoPoint.getY());
+                int range = getTemperatureRange(temperature);
+                
+                if (bitmaps[range] == null) {
+                    bitmaps[range] = new BitMap(IMAGE_WIDTH, IMAGE_HEIGHT);
+                }
+                
+                bitmaps[range].paint(x, y);
+            }
+        }
+        
+        return bitmaps;
+    }
+
+    /**
+     * Creates and feeds a new interpolator that will use data from the given &lt;code&gt;date&lt;/code&gt;.
+     */
+    private static final Interpolator createInterpolator(Date date, Map&lt;Long, GeoStation&gt; stations) {
+        Map&lt;Long, Temperature&gt; temperatures = CommonDAO.findAllTemperatures(date);
+        Interpolator interpolator = new IDWInterpolator(4);
+
+        // Feeding the interpolator...
+        for (Long stationID : temperatures.keySet()) {
+            GeoStation station = stations.get(stationID);
+            Temperature temperature = temperatures.get(stationID);
+            Coordinate location = station.getLocation().getCoordinate();
+            interpolator.addSample(location.x, location.y, temperature.getMaxTemp());
+        }
+        
+        return interpolator;
+    }
+    
+    /**
+     * Saves the given &lt;code&gt;bitmaps&lt;/code&gt; in the working directory using the
+     * date given by &lt;code&gt;calendar&lt;/code&gt; as the name of the file.
+     */
+    private static final void saveBitMaps(Calendar calendar, BitMap[] bitmaps) throws FileNotFoundException, IOException {
+        // Using the date to name the file
+        String fileName = String.format(&quot;bitmap-%s-%s-%s.obj&quot;, 
+                calendar.get(Calendar.DAY_OF_MONTH), 
+                calendar.get(Calendar.MONTH) + 1, 
+                calendar.get(Calendar.YEAR));
+        
+        // Just serialize the whole array...
+        ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(fileName)));
+        
+        try {
+            os.writeObject(bitmaps);
+        } finally {
+            os.close();
+        }
+        
+        System.out.println(calendar.getTime());
+    }
+    
+    /**
+     * Returns the temperature range to which the given &lt;code&gt;temperature&lt;/code&gt; belongs.
+     */
+    private static final int getTemperatureRange(double temperature) {
+        for (int t = 0; t &lt; TEMPERATURE_RANGES.length; t++) {
+            if (temperature &lt;= TEMPERATURE_RANGES[t]) {
+                return t;
+            }
+        }
+        
+        throw new IllegalStateException(&quot;Temperature outside valid range&quot;);
+    }
+    
+    /**
+     * Checks if the given point is inside any of the given &lt;code&gt;polygons&lt;/code&gt;.
+     */
+    private static boolean isPointInside(int x, int y, java.awt.Polygon... polygons) {
+        for (java.awt.Polygon polygon : polygons) {
+            if (polygon.contains(x, y)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }    
+    
+    /**
+     * The shapefile in this method was used in the &quot;Rendering geometries&quot; secion.
+     */
+    private static final ShapeFileData readDataFromUSShape() throws IOException, CQLException {
+        FileDataStore store = FileDataStoreFinder.getDataStore(new File(&quot;D:/TEMP/NCDC/Shape/tl_2014_us_state.shp&quot;));
+        SimpleFeatureSource featureSource = store.getFeatureSource();
+        Filter contiguousStates = ECQL.toFilter(&quot;STUSPS NOT IN ('AK','HI','AS','MP','PR','VI','UM','GU')&quot;);
+        SimpleFeatureCollection features = featureSource.getFeatures(contiguousStates);
+        SimpleFeatureIterator iterator = features.features();
+        List&lt;Polygon&gt; collection = new ArrayList&lt;Polygon&gt;();
+
+        try {
+            while (iterator.hasNext()) {
+                SimpleFeature feature = iterator.next();
+                Geometry geometry = (Geometry) feature.getDefaultGeometry();
+                
+                if (geometry instanceof MultiPolygon) {
+                    MultiPolygon multiPol = (MultiPolygon) geometry;
+                    int numGeometries = multiPol.getNumGeometries();
+                    
+                    for (int g = 0; g &lt; numGeometries; g++) {
+                        collection.add((Polygon) multiPol.getGeometryN(g));
+                    }
+                }
+            }
+        } finally {
+            iterator.close();
+        }
+        
+        ShapeFileData data = new ShapeFileData();
+        
+        data.setEnvelope(features.getBounds());
+        data.setOriginalPolygon(collection.get(0).getFactory()
+                .createMultiPolygon(collection.toArray(new Polygon[collection.size()])));
+        
+        return data;
+    }
+    
+    /**
+     * Used for encapsulating data read from a shapefile. 
+     */
+    private static class ShapeFileData {
+        
+        private Envelope envelope;
+        
+        private MultiPolygon originalPolygon;
+        
+        public Envelope getEnvelope() {
+            return envelope;
+        }
+
+        public void setEnvelope(Envelope envelope) {
+            this.envelope = envelope;
+        }
+
+        public MultiPolygon getOriginalPolygon() {
+            return originalPolygon;
+        }
+
+        public void setOriginalPolygon(MultiPolygon originalPolygon) {
+            this.originalPolygon = originalPolygon;
+        }
+
+    }    
+
+    /**
+     * The interpolation process is dreadfully slow; this runnable class attemps
+     * to ease the burden by allowing the program to distribute periods of the
+     * year for different threads to interpolate.
+     */
+    private static class InterpolationRunnable implements Runnable {
+
+        private Map&lt;Long, GeoStation&gt; stations;
+        
+        private java.awt.Polygon[] awtPolygons;
+        
+        private AffineTransform awtToGeo;
+        
+        private GregorianCalendar calendar;
+        
+        private int numDays;
+        
+        /**
+         * @param dayOfYear first day to interpolate, inclusive
+         * @param lastDayOfYear last day to interpolate, inclusive
+         */
+        InterpolationRunnable(int dayOfYear, int lastDayOfYear, 
+                Map&lt;Long, GeoStation&gt; stations, java.awt.Polygon[] awtPolygons,
+                AffineTransform awtToGeo) {
+            
+            numDays = lastDayOfYear - dayOfYear;
+            calendar = new GregorianCalendar();
+            
+            calendar.set(Calendar.YEAR, 2014); // Because we imported data from 2014
+            calendar.set(Calendar.DAY_OF_YEAR, dayOfYear);
+            
+            this.awtPolygons = awtPolygons;
+            this.awtToGeo = awtToGeo;
+            this.stations = stations;
+        }
+        
+        @Override
+        public void run() {
+            for (int d = 0; d &lt;= numDays; d++, calendar.add(Calendar.DAY_OF_YEAR, 1)) {
+                System.out.printf(&quot;Interpolating %s%n&quot;, calendar.getTime());
+                Date currentDate = calendar.getTime();
+                Interpolator interpolator = createInterpolator(currentDate, stations);
+                BitMap[] bitmaps = interpolateBitMaps(interpolator, awtPolygons, awtToGeo);
+                
+                try {
+                    saveBitMaps(calendar, bitmaps);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }    
+        }
+        
+    }
+    
+}</code></pre>
+    </details>
+
+    <!-- INTERPOLATION END -->
+
+    <!-- POLYGONIZATION START -->
+    <h2 id="Polygonization">Polygonizing interpolated bitmaps</h2>
+
+    <p>
+        The main purpose of this article is having the freedom to animate whichever temperature ranges by means of a
+        simple CQL. If we were to directly publish the interpolated bitmaps into GeoServer
+        we would never be able to isolate one temperature range in this fashion. This section will demonstrate a simple
+        way to create polygons out of the interpolated bitmaps we created in the previous
+        section. The algorithm to realize this is likely an old friend of yours: quadriculation. Quadriculate the
+        buffers and then join adjacent rectangles until there is nothing to be joined.
+        Done! Just to make things a little easier than they already are, GeoTools has a handy method for joining the
+        rectangles, so all we have to do is the quadriculation! The pictures below illustrate the whole process:
+    </p>
+
+    <p class="imagearea"><img alt="interpolation" src="interpolation_grid.png"/></p>
+    <p class="subtitle">
+        Imagine this is the interpolation for a given temperature range. Every square represents a pixel. The algorithm
+        will search for a painted pixel. When one painted pixel is found, the area of the
+        triangle is divided into 4 squares, until all squares (or rectangles) have nothing but painted pixels.
+    </p>
+
+    <p class="imagearea"><img alt="quadriculation" src="quadriculation.gif"/></p>
+    <p class="subtitle">
+        The method executes recursively until all pixels in one square are of the same color. In the last step you will
+        have a collection of squares (or rectangles, if the area being quadriculated isn't a
+        power of 2) that will then be joined with their adjacent squares, thus forming the polygons.
+    </p>
+
+    <p class="caption">Implementation</p>
+
+    <p>
+        The implementation below will transform a BitMap into a list of rectangles in the form of AWT <a
+            href="http://docs.oracle.com/javase/7/docs/api/java/awt/Polygon.html" target="_blank">Polygon</a>s. AWT does
+        not have a specific class for rectangles, so don't be misled by the object type: the method will return a list
+        of <em>rectangles</em>. Note that in this implementation I did not use its <a
+            href="http://www.vividsolutions.com/jts/javadoc/com/vividsolutions/jts/geom/Polygon.html" target="_blank">JTS
+        counterpart</a> because the BitMap class uses an artificial Cartesian system. Once we have
+        our rectangles finally created, we can then transform their coordinates into coordinates in the original
+        coordinate system of the source data.
+    </p>
+
+    <details class="code-block">
+        <summary class="caption">Quadriculator</summary>
+        <pre class="language-java"><code class="language-java">import java.awt.Polygon;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+* Extracts rectangles from the painted pixels of a bitmap.
+*/
+public class Quadriculator {
+
+    /**
+     * Extracts all rectangles that can be derived from the painted pixels in
+     * the given &lt;code&gt;bitmap&lt;/code&gt;.
+     * 
+     * @param bitmap the bitmap from which the rectangles will be extracted
+     * @return a list of rectangles corresponding to the painted pixels in the
+     * given &lt;code&gt;bitmap&lt;/code&gt;
+     */
+    public static List&lt;Polygon&gt; toRectangles(BitMap bitmap) {
+        List&lt;Polygon&gt; rectangles = new ArrayList&lt;Polygon&gt;();
+        quadriculate(0, 0, bitmap.getWidth(), bitmap.getHeight(), bitmap, rectangles);
+        return rectangles;
+    }
+    
+    /**
+     * Fills the &lt;code&gt;rectangles&lt;/code&gt; list with all the rectangles that 
+     * correspond to painted pixels in the given &lt;code&gt;bitmap&lt;/code&gt;.
+     * 
+     * @param x the x coordinate of the starting point of the search 
+     * @param y the y coordinate of the starting point of the search
+     * @param width the width of the search field
+     * @param height the height of the search field
+     * @param bitmap the bitmap whose painted pixels will be searched
+     * @param rectangles the rectangles extracted so far
+     */
+    private static void quadriculate(int x, int y, int width, int height, 
+            BitMap bitmap, List&lt;Polygon&gt; rectangles) {
+        
+        if ((width == 1) &amp;&amp; (height == 1)) {
+            if (bitmap.isPainted(x, y)) {
+                rectangles.add(toPolygon(x, y, 1, 1));
+            }
+            
+            return;
+        }
+        
+        for (int currentY = y; currentY &lt; y + height; currentY++) {
+            for (int currentX = x; currentX &lt; x + width; currentX++) {
+                if (!bitmap.isPainted(currentX, currentY)) {
+                    if ((width &gt; 1) &amp;&amp; (height &gt; 1)) {
+                        int firstWidth = width &gt;&gt; 1;
+                        int secondWidth = width - firstWidth;
+                        int firstHeight = height &gt;&gt; 1;
+                        int secondHeight = height - firstHeight;
+                        
+                        quadriculate(x, y, firstWidth, firstHeight, bitmap, rectangles);
+                        quadriculate(x + firstWidth, y, secondWidth, firstHeight, bitmap, rectangles);
+                        quadriculate(x, y + firstHeight, firstWidth, secondHeight, bitmap, rectangles);
+                        quadriculate(x + firstWidth, y + firstHeight, secondWidth, secondHeight, bitmap, rectangles);
+                    } else if (width == 1) {
+                        int firstHeight = height &gt;&gt; 1;
+                        int secondHeight = height - firstHeight;
+                        
+                        quadriculate(x, y, 1, firstHeight, bitmap, rectangles);
+                        quadriculate(x, y + firstHeight, 1, secondHeight, bitmap, rectangles);
+                    } else  if (height == 1) {
+                        int firstWidth = width &gt;&gt; 1;
+                        int secondWidth = width - firstWidth;
+                        
+                        quadriculate(x, y, firstWidth, 1, bitmap, rectangles);
+                        quadriculate(x + firstWidth, y, secondWidth, 1, bitmap, rectangles);
+                    }
+                    
+                    return;
+                }
+            }
+        }
+        
+        rectangles.add(toPolygon(x, y, width, height));
+    }
+    
+    private static Polygon toPolygon(int x, int y, int width, int height) {
+        int[] xPoints = {x, x, x + width, x + width, x};
+        int[] yPoints = {y, y + height, y + height, y, y};
+        return new Polygon(xPoints, yPoints, 5);
+    }
+
+}</code></pre>
+    </details>
+
+    <p class="caption">Combining neighboring rectangles</p>
+
+    <p>
+        We have a list of rectangles and we know that once adjacent rectangles are joined they form polygons. One could
+        devise an algorithm to realize this union, but GeoTools has a method in the Geometry class that will
+        come in handy for this particular functionality: the <a
+            href="http://www.vividsolutions.com/jts/javadoc/com/vividsolutions/jts/geom/Geometry.html#buffer(double)"
+            target="_blank">buffer()</a> method can be used
+        to realize the union of adjacent polygons <a
+            href="http://docs.geotools.org/latest/userguide/library/jts/combine.html">if you pass zero as the buffer
+        parameter</a>. This method however will not spare us from
+        having to know which rectangles touch each other. We need to create a method that will group adjacent rectangles
+        and only then we can send them to buffer(0), where one single polygon will be created out of the
+        rectangle collection. This logic is implemented in the method below:
+    </p>
+
+    <details class="code-block">
+        <summary class="caption">Joining adjacent rectangles into polygons</summary>
+        <pre class="language-java"><code class="language-java">/**
+ * Joins adjacent rectangles into polygons.
+ * 
+ * @param rectangles the rectangles to be joined into polygons
+ * @param factory the geometry factory configured with the correct SRID
+ * @return a list of polygons that could be created out of the given list of rectangles
+ */
+public static final List&lt;Polygon&gt; joinAdjacentPolygons(List&lt;Polygon&gt; rectangles, GeometryFactory factory) {
+    Map&lt;Polygon, Set&lt;Polygon&gt;&gt; polygonGroupMap = new HashMap&lt;Polygon, Set&lt;Polygon&gt;&gt;();
+    List&lt;Set&lt;Polygon&gt;&gt; polygonGroupList = new ArrayList&lt;Set&lt;Polygon&gt;&gt;();
+    
+    for (Polygon p1 : rectangles) {
+        boolean hasNeighbor = false;
+        
+        for (Polygon p2 : rectangles) {
+            if ((p1 == p2) || (polygonGroupMap.containsKey(p1) &amp;&amp; polygonGroupMap.containsKey(p2))) {
+                continue;
+            }
+            
+            // p1 and p2 need to have one side in common, not just one point
+            if (p1.touches(p2) &amp;&amp; (p1.intersection(p2).getNumPoints() &gt; 1)) {
+                hasNeighbor = true;
+                Set&lt;Polygon&gt; polygonGroup = null;
+                
+                if (polygonGroupMap.containsKey(p1)) {
+                    // If p1 was already found in a group, add p2 to this group  
+                    polygonGroup = polygonGroupMap.get(p1);
+                    polygonGroup.add(p2);
+                    polygonGroupMap.put(p2, polygonGroup);
+                } else if (polygonGroupMap.containsKey(p2)) {
+                    // If p2 was already found in a group, add p1 to this group
+                    polygonGroup = polygonGroupMap.get(p2);
+                    polygonGroup.add(p1);
+                    polygonGroupMap.put(p1, polygonGroup);
+                } else {
+                    // If p1 and p2 weren't found in any group, create a group in which the two belong
+                    polygonGroup = new HashSet&lt;Polygon&gt;();
+                    polygonGroup.add(p1);
+                    polygonGroup.add(p2);
+                    polygonGroupMap.put(p1, polygonGroup);
+                    polygonGroupMap.put(p2, polygonGroup);
+                    polygonGroupList.add(polygonGroup);
+                }
+            }
+        }
+        
+        // Isolated rectangles
+        if (!hasNeighbor) {
+            Set&lt;Polygon&gt; polygonGroup = new HashSet&lt;Polygon&gt;(1);
+            polygonGroup.add(p1);
+            polygonGroupMap.put(p1, polygonGroup);
+        }
+    }
+    
+    polygonGroupMap = null; // For garbage collection's sake
+    List&lt;Polygon&gt; joinedPolygons = new ArrayList&lt;Polygon&gt;(polygonGroupList.size());
+    
+    for (Set&lt;Polygon&gt; polygonSet : polygonGroupList) {
+        Polygon[] polygonArray = polygonSet.toArray(new Polygon[0]);
+        GeometryCollection polygonCollection = factory.createGeometryCollection(polygonArray);
+        joinedPolygons.add((Polygon) polygonCollection.buffer(0D));
+    }
+    
+    return joinedPolygons;
+}</code></pre>
+    </details>
+
+    <p class="caption">Saving everything to the database</p>
+
+    <p>
+        The time has come to put all the pieces of this section together and continue the part that the last section
+        left hanging. This is what we will do now:
+    </p>
+
+    <ol>
+        <li>Deserialize the bitmaps we serialized in the last section
+        <li>Create polygons for each of the bitmaps
+        <li>Store each polygon into the database
+    </ol>
+
+    <p>
+        Let's create the table that will store the polygons. This table should associate each polygon with a specific
+        temperature range, which should also be in the database. We will therefore create
+        one table for the polygons (geo.interpolation) and another for the temperature ranges (geo.temperaturerange):
+    </p>
+
+    <details class="code-block">
+        <summary class="caption">Interpolation table</summary>
+        <pre class="language-sql"><code class="language-sql">CREATE TABLE geo.temperaturerange (
+   id serial NOT NULL, 
+   min decimal(3,1) NOT NULL, 
+   max decimal(3,1) NOT NULL, 
+   CONSTRAINT pk_temperaturerange PRIMARY KEY (id)
+) WITH (OIDS = FALSE);        
+
+CREATE TABLE geo.interpolation (
+   id bigserial NOT NULL, 
+   range_id serial NOT NULL, 
+   measurement_date date NOT NULL, 
+   area public.geometry NOT NULL, 
+   CONSTRAINT pk_interpolation PRIMARY KEY (id), 
+   CONSTRAINT fk_interp_range FOREIGN KEY (range_id) 
+                              REFERENCES geo.temperaturerange (id) 
+                              ON UPDATE NO ACTION ON DELETE NO ACTION
+) WITH (OIDS = FALSE);</code></pre>
+    </details>
+
+    <details class="code-block">
+        <summary class="caption">Entities - TemperatureRange</summary>
+        <pre class="language-java"><code class="language-java">import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(schema = "geo", name = "temperaturerange")
+public class TemperatureRange {
+
+    @Id
+    private Long id;
+    
+    @Column(name = "min", nullable = false)
+    private Double min;
+    
+    @Column(name = "max", nullable = false)
+    private Double max;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Double getMin() {
+        return min;
+    }
+
+    public void setMin(Double min) {
+        this.min = min;
+    }
+
+    public Double getMax() {
+        return max;
+    }
+
+    public void setMax(Double max) {
+        this.max = max;
+    }    
+}</code></pre>
+    </details>
+
+    <details class="code-block">
+        <summary class="caption">Entities - Interpolation</summary>
+        <pre class="language-java"><code class="language-java">import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.Type;
+
+import com.vividsolutions.jts.geom.Geometry;
+
+@Entity
+@Table(schema = "geo", name = "interpolation")
+public class Interpolation {
+
+    @Id
+    private Long id;
+    
+    @Type(type = "org.hibernate.spatial.GeometryType")
+    @Column(name = "area", nullable = false)
+    private Geometry geometry;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "range_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = false)
+    private TemperatureRange range;
+    
+    @Column(name = "measurement_date", nullable = false)
+    private Date date;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Geometry getGeometry() {
+        return geometry;
+    }
+
+    public void setGeometry(Geometry geometry) {
+        this.geometry = geometry;
+    }
+
+    public TemperatureRange getRange() {
+        return range;
+    }
+
+    public void setRange(TemperatureRange range) {
+        this.range = range;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }    
+}</code></pre>
+    </details>
+
+    <p>
+        The code below will execute the following tasks:
+    </p>
+
+    <ul>
+        <li>For every day of the year, do:
+            <ul>
+                <li>Deserialize the bitmaps for the given day. For every bitmap, do:
+                    <ul>
+                        <li>Apply the quadriculation algorithm on the bitmap and extract the resulting AWT rectangles
+                        <li>Convert these AWT rectangles into JTS rectangles
+                        <li>Join these rectangles to form polygons
+                        <li>Save the interpolation for this given temperature range for this given day
+                    </ul>
+            </ul>
+    </ul>
+
+    <details class="code-block">
+        <summary class="caption">Polygonator class</summary>
+        <pre class="language-java"><code class="language-java">import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
+
+import org.geotools.data.FileDataStore;
+import org.geotools.data.FileDataStoreFinder;
+import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.filter.text.cql2.CQLException;
+import org.geotools.filter.text.ecql.ECQL;
+import org.opengis.filter.Filter;
+
+import com.daltonfilho.db.CommonDAO;
+import com.daltonfilho.entity.Interpolation;
+import com.daltonfilho.entity.TemperatureRange;
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.MultiPolygon;
+import com.vividsolutions.jts.geom.PrecisionModel;
+
+/**
+ * Throw-away program to execute the one-off procedure of saving the temperature
+ * ranges and the interpolated polygons for each range for each day of the year.
+ */
+public class Polygonator {
+    
+    private static final double RESOLUTION = 0.09660588333333334333333333333333;
+    private static final int[] TEMPERATURE_RANGES = {-99, -10, 0, 10, 20, 30, 99};
+    
+    public static void main(String[] args) throws Exception {
+        saveTemperatureRanges();
+        saveInterpolations();
+    }
+    
+    private static final void saveTemperatureRanges() {
+        List&lt;TemperatureRange&gt; tempRanges = new ArrayList&lt;TemperatureRange&gt;(12);
+        
+        for (int range = 0; range &lt; TEMPERATURE_RANGES.length - 1; range++) {
+            TemperatureRange tempRange = new TemperatureRange();
+            tempRange.setId((long) range);
+            tempRange.setMin((double) TEMPERATURE_RANGES[range]);
+            tempRange.setMax((double) TEMPERATURE_RANGES[range + 1]);
+            tempRanges.add(tempRange);
+        }
+        
+        CommonDAO.saveAll(tempRanges);
+    }
+    
+    private static final void saveInterpolations() 
+    	throws ClassNotFoundException, IOException, CQLException, NoninvertibleTransformException {
+        
+        GeometryFactory geomFactory = new GeometryFactory(new PrecisionModel(PrecisionModel.FLOATING), 4326);
+        AffineTransform awtToGeo = TransformUtil.createAffineTransformForResolution(
+        	readEnvelopeFromUSShape(), RESOLUTION).createInverse();
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        int daysPerProcessor = 365 / availableProcessors; // It will truncate, but we will use the remainder in the last thread
+        
+        for (int t = 0, day = 1; t &lt; availableProcessors; t++, day += daysPerProcessor) {
+            PolygonizerRunnable polygonizer = null;
+            
+            if (t &lt; availableProcessors - 1) {
+                polygonizer = new PolygonizerRunnable(day, (day + daysPerProcessor) - 1, geomFactory, awtToGeo);
+            } else { 
+                polygonizer = new PolygonizerRunnable(day, 365, geomFactory, awtToGeo);
+            }
+            
+            new Thread(polygonizer).start();
+        }
+    }
+    
+    /**
+     * Deserializes the bitmap arrays that were serialized in the Interpolation section.
+     */
+    private static final BitMap[] readBitMapsForDate(Calendar calendar, int dayOfYear)  {
+        String fileName = String.format(&quot;bitmap-%s-%s-%s.obj&quot;, 
+                calendar.get(Calendar.DAY_OF_MONTH), 
+                calendar.get(Calendar.MONTH) + 1, 
+                calendar.get(Calendar.YEAR));
+        
+        BitMap[] bitmaps = null;
+        
+        try {
+            File bitmapFile = new File(fileName);
+            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(bitmapFile));
+            
+            try {
+                bitmaps = (BitMap[]) ois.readObject();
+            } finally {
+                ois.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        return bitmaps;
+    }
+    
+    private static final Envelope readEnvelopeFromUSShape() throws IOException, CQLException {
+        FileDataStore store = FileDataStoreFinder.getDataStore(new File(&quot;tl_2014_us_state.shp&quot;));
+        SimpleFeatureSource featureSource = store.getFeatureSource();
+        Filter contiguousStates = ECQL.toFilter(&quot;STUSPS NOT IN ('AK','HI','AS','MP','PR','VI','UM','GU')&quot;);
+        SimpleFeatureCollection features = featureSource.getFeatures(contiguousStates);
+        return features.getBounds();
+    }
+    
+    /**
+     * Deserializes, polygonizes and stores the polygons into the database for the given period. 
+     */
+    private static class PolygonizerRunnable implements Runnable {
+        
+        private int initialDoY;
+        
+        private int finalDoY;
+        
+        private GeometryFactory geomFactory;
+        
+        private AffineTransform awtToGeo;
+
+        private static Long id = 1L;
+        
+        /**
+         * @param initialDoY initial day of year, inclusive
+         * @param finalDoY final day of year, inclusive
+         * @param initialID initial ID for persisting the Interpolation entity (will be incremented)
+         * @param geomFactory the factory for creating geometries in the proper projection
+         * @param awtToGeo the transform that transforms AWT coordinates into geographic coordinates
+         */
+        PolygonizerRunnable(int initialDoY, int finalDoY, GeometryFactory geomFactory, AffineTransform awtToGeo) {
+            this.initialDoY = initialDoY;
+            this.finalDoY = finalDoY;
+            this.awtToGeo = awtToGeo;
+            this.geomFactory = geomFactory;
+        }
+        
+        @Override
+        public void run() {
+            Calendar calendar = new GregorianCalendar();
+            
+            calendar.set(Calendar.YEAR, 2014); // Because we imported data from 2014
+            calendar.set(Calendar.DAY_OF_YEAR, initialDoY);
+            
+            for (int d = initialDoY; d &lt;= finalDoY; d++, calendar.add(Calendar.DAY_OF_YEAR, 1)) {
+                BitMap[] bitmaps = readBitMapsForDate(calendar, d);
+                int count = 0; 
+                
+                for (int c = 0; c &lt; bitmaps.length; c++) {
+                    BitMap bitmap = bitmaps[c];
+                    
+                    if (bitmap != null) { 
+                        List&lt;java.awt.Polygon&gt; awtPolygons = Quadriculator.toRectangles(bitmap);
+                        List&lt;com.vividsolutions.jts.geom.Polygon&gt; geographicPolygons = 
+                        	TransformUtil.toGeographicPolygons(awtPolygons, awtToGeo, geomFactory);
+                        geographicPolygons = TransformUtil.joinAdjacentPolygons(geographicPolygons, geomFactory);
+                        MultiPolygon multiPolygon = geomFactory.createMultiPolygon(geographicPolygons.toArray(
+                        	new com.vividsolutions.jts.geom.Polygon[geographicPolygons.size()]));
+                        
+                        Interpolation interpolation = new Interpolation();
+                        interpolation.setRangeId((long) c);
+                        interpolation.setGeometry(multiPolygon);
+                        interpolation.setDate(calendar.getTime());
+
+                        synchronized(PolygonizerRunnable.id) {
+                            interpolation.setId(PolygonizerRunnable.id++);
+                        }
+                        
+                        CommonDAO.save(interpolation, count % 50 == 0);
+                    }
+                }
+            }
+        }
+        
+    }
+    
+}</code></pre>
+    </details>
+
+    <!-- POLYGONIZATION END -->
+
+    <!-- GEOSERVER START -->
+
+    <h2 id="GeoServer">Animating interpolations on GeoServer</h2>
+
+    <p>
+        At this point we have all the data we need to publish the interpolation table on geoserver. If you have little
+        experience with GeoServer, they have a very nice
+        <a href="http://docs.geoserver.org/stable/en/user/gettingstarted/postgis-quickstart/index.html" target="_blank">tutorial</a>
+        available. The GeoServer's WMS
+        animator is another thing altogether and it deserves some attention in this section of the article.
+    </p>
+
+    <p>
+        A WMS animation request is very similar to a standard WMS request. The 3 main differences are the following:
+    </p>
+
+    <ol>
+        <li>The uri is <code>wms/animate</code> rather than <code>wms</code>
+        <li>The <code>aparam</code> parameter, which defines the attribute that will change for every frame
+        <li>The <code>avalues</code> paramter, which defines the parameters for the animation
+    </ol>
+
+    <p>
+        Beware: the <code>aparam</code> and <code>avalues</code> are not, respectively, the CQL property and values (as
+        I was tempted to think in the beginning) If you want to
+        animate based on a CQL, you have to specify <code>aparam</code> as <code>cql_filter</code> and then for <code>avalues</code>
+        you will have to define <em>one CQL per
+        frame</em>. As you might have noticed, the geo.interpolation table contains a date column, but as you probably
+        know, specifying dates via CQL is quite cumbersome, not
+        to mention very expensive in terms of url length. A GET request can only handle so many characters and the CQL
+        is a liability because you can't always know how long it
+        will be. A date column might consume multiple characters in the CQL and this imposes limitations on the
+        animations we can produce. To avoid this problem I will use
+        the old technique of creating a view with CQL friendly columns. Instead of one date column, I will add one
+        column for the year and another for the day of the year (doy)
+        This alone will save <em>lots</em> of characters in the final WMS/animate request. Below you'll find the script
+        for the <code>geo.vinterpolation</code> view:
+    </p>
+
+    <details class="code-block">
+        <summary class="caption">Interpolation view</summary>
+        <pre class="language-sql"><code class="language-sql">CREATE OR REPLACE VIEW geo.vinterpolation AS
+SELECT g.id,
+       g.range_id,
+       date_part('DOY'::text, g.measurement_date) AS doy,
+       date_part('Y'::text, g.measurement_date) AS year,
+       g.area
+FROM geo.interpolation g;</code></pre>
+    </details>
+
+    <p>
+        Before you publish the view above, if you don't want to style it with your own palette, you can use the <a
+            href="temperature_ranges.sld" target="_new">SLD</a> I've created
+        with <a href="https://github.com/geopublishing/atlasframework" target="_blank">Atlas Styler</a>. It will
+        generate a legend like this
+        one:
+    </p>
+
+    <div class="imagearea">
+        <img alt="Temperature range legend" src="temperature_range_legend.png"/>
+    </div>
+
+    <p class="caption">Preparing the WMS request</p>
+
+    <p>
+        Here in my local GeoServer I created a workspace named "ncdc" and published the geo.vinterpolation view as
+        "ncdc:vinterpolation". The wms/animate request accepts all parameters of
+        the standard WMS request (in our case, the GetMap operation) so to prepare the animation, we will need to test a
+        few parameters before we create our animation requests. First
+        of all, this is the rendering without any CQL, pretty useless as it shows data from all days without
+        distinction:
+    </p>
+
+    <div class="imagearea">
+        <img class="rendering" alt="Rendering 1" src="rendering_1.png"/>
+    </div>
+
+    <pre class="urlparams">
+http://localhost:8080/geoserver/ncdc/wms?LAYERS=ncdc%3Avinterpolation
+                                         &FORMAT=image%2Fpng8
+                                         &SERVICE=WMS
+                                         &VERSION=1.1.1
+                                         &REQUEST=GetMap
+                                         &SRS=EPSG%3A4326
+                                         &FORMAT_OPTIONS=antialias%3Anone
+                                         &BBOX=-129.83021485938,18.194242885677,-61.904203140626,55.553549330989&
+                                         WIDTH=600
+                                         &HEIGHT=330
+                                         &TRANSPARENT=TRUE
+</pre>
+
+    <p>
+        Using the day of year (doy) column, you can obtain a more useful result:
+    </p>
+
+    <div class="imagearea">
+        <img class="rendering" alt="Rendering 2" src="rendering_2.png"/>
+    </div>
+
+    <p class="subtitle">
+        Showing doy 201 (July 20th) The colors appear fainter because there is no overlapping of geometries and colors
+        were defined as semi-transparent in the SLD.
+    </p>
+
+    <pre class="urlparams">
+http://localhost:8080/geoserver/ncdc/wms?LAYERS=ncdc%3Avinterpolation
+                                        &FORMAT=image%2Fpng8
+                                        &SERVICE=WMS
+                                        &VERSION=1.1.1
+                                        &REQUEST=GetMap
+                                        &SRS=EPSG%3A4326
+                                        &FORMAT_OPTIONS=antialias%3Anone
+                                        <span style="color:blue">&CQL_FILTER=doy=201</span>
+                                        &BBOX=-130.22644992774,18.880295604038,-62.300438208987,56.23960204935
+                                        &WIDTH=600
+                                        &HEIGHT=330
+                                        &TRANSPARENT=TRUE
+</pre>
+
+    <p>
+        The reason why I made the colors semi-transparent is because I wanted to show all the states of United States
+        behind the interpolation. Throughout this article
+        we used the <a href="https://www.census.gov/geo/maps-data/data/tiger-line.html" target="_blank">shapefile of
+        United States</a>. In my local GeoServer I published
+        this shapefile as "ncdc:states" and used a <a href="states.sld" target="_new">simple style</a> for its polygons.
+        Using CQL over multiple layers is a bit more tricky
+        since you need to separate each CQL with ";". I still haven't found a way to inform a null CQL, so what I did
+        for the US states CQL is a condition that filters nothing:
+        <code>1=1</code>. This way, the final CQL becomes: <code>1=1;doy=201</code> -- the first being applied to
+        "ncdc:states" and the second to "ncdc:vinterpolation".
+    </p>
+
+    <div class="imagearea">
+        <img class="rendering" alt="Rendering 3" src="rendering_3.png"/>
+    </div>
+
+    <pre class="urlparams">
+http://localhost:8080/geoserver/ncdc/wms?LAYERS=<span style="color:blue">ncdc%3Astates</span>,ncdc%3Avinterpolation
+                                        &FORMAT=image%2Fpng8
+                                        &SERVICE=WMS
+                                        &VERSION=1.1.1
+                                        &REQUEST=GetMap
+                                        &SRS=EPSG%3A4326
+                                        &FORMAT_OPTIONS=antialias%3Anone
+                                        &CQL_FILTER=<span style="color:blue">1=1</span>;doy=201
+                                        &BBOX=-130.22644992774,18.880295604038,-62.300438208987,56.23960204935
+                                        &WIDTH=600
+                                        &HEIGHT=330    
+                                        &TRANSPARENT=TRUE
+</pre>
+
+    <p>
+        This wms request will serve as a prototype for our wms/animate request. As mentioned earlier, we need to change
+        the request to wms/animate and add the <code>aparam</code> and
+        <code>avalues</code> parameters. We need to animate based on a CQL, so <code>aparam=cql_filter</code>. The
+        tricky part is specifying the <code>avalues</code> parameter
+        because we need to specify <em>one CQL per frame</em>. Considering we need to use a composed CQL for each day,
+        the final CQL is bound to be rather long!
+    </p>
+
+    <p class="caption">Animating WMS requests</p>
+
+    <p>
+        Let us proceed to our first animation: for this first test, we will only animate 5 consecutive days (from doy
+        101 to 105) and we will not isolate any temperature range. Below you'll
+        find the end result of the animation and its wms/animate request:
+    </p>
+
+    <div class="imagearea">
+        <img class="rendering" alt="Rendering 5" src="rendering_5.gif"/>
+    </div>
+
+    <p class="subtitle">
+        Maximum temperatures between doy 101 (April 11th) and doy 105 (April 15th)
+    </p>
+
+    <pre class="urlparams">
+http://localhost:8080/geoserver/ncdc/wms/<span style="color:blue">animate</span>?LAYERS=ncdc%3Astates,ncdc%3Avinterpolation
+    <span style="color:blue">&FORMAT=image/gif;subtype=animated</span>
+    <span style="color:blue">&FORMAT_OPTIONS=antialias%3Anone;gif_loop_continuosly:true;gif_frames_delay:100</span>
+    &BBOX=-130.22644992774,18.880295604038,-62.300438208987,56.23960204935
+    &WIDTH=600
+    &HEIGHT=330
+    &TRANSPARENT=TRUE
+    <span style="color:blue">&APARAM=cql_filter</span>
+    <span style="color:blue">&AVALUES=1=1;doy=101,1=1;doy=102,1=1;doy=103,1=1;doy=104,1=1;doy=105</span>
+</pre>
+
+    <p>
+        There are several potential gotchas in the request above:
+    </p>
+
+    <ul>
+        <li>The format (as of 2015...) <em>must</em> be image/gif;subtype=animated
+        <li>You must specify your format_options unless you want to rely on the <a
+                href="http://docs.geoserver.org/stable/en/user/tutorials/animreflector.html#animation-options"
+                target="_blank">defaults</a>
+            of the animator, which are not necessarily desirable
+        <li>The <code>aparam</code> parameter must be <code>cql_filter</code>
+        <li>The <code>values</code> must separate each CQL-frame with "," and composed CQL queries must use ";". In
+            effect, you must use both "," and ";" if you want to animated multiple layers at once like in the example
+            above
+    </ul>
+
+    <p>
+        Finally, let's isolate individual temperature bands in the animation. All we have to do is change the CQL... for
+        each and every frame!
+    </p>
+
+    <div class="imagearea">
+        <img class="rendering" alt="Rendering 6" src="rendering_6.gif"/>
+    </div>
+
+    <pre class="urlparams">
+http://localhost:8080/geoserver/ncdc/wms/animate?LAYERS=ncdc%3Astates,ncdc%3Avinterpolation
+    &format=image/gif;subtype=animated
+    &FORMAT_OPTIONS=antialias%3Anone;gif_loop_continuosly:true;gif_frames_delay:100
+    &BBOX=-130.22644992774,18.880295604038,-62.300438208987,56.23960204935
+    &WIDTH=600
+    &HEIGHT=330
+    &TRANSPARENT=TRUE
+    &aparam=cql_filter
+    &avalues=1=1;doy=101%20and%20range_id=1,
+             1=1;doy=102%20and%20range_id=1,
+             1=1;doy=103%20and%20range_id=1,
+             1=1;doy=104%20and%20range_id=1,
+             1=1;doy=105%20and%20range_id=1
+</pre>
+
+    <div class="imagearea">
+        <img class="rendering" alt="Rendering 7" src="rendering_7.gif"/>
+    </div>
+
+    <pre class="urlparams">
+http://localhost:8080/geoserver/ncdc/wms/animate?LAYERS=ncdc%3Astates,ncdc%3Avinterpolation
+    &format=image/gif;subtype=animated
+    &FORMAT_OPTIONS=antialias%3Anone;gif_loop_continuosly:true;gif_frames_delay:100
+    &BBOX=-130.22644992774,18.880295604038,-62.300438208987,56.23960204935
+    &WIDTH=600
+    &HEIGHT=330
+    &TRANSPARENT=TRUE
+    &aparam=cql_filter
+    &avalues=1=1;doy=101%20and%20range_id=2,
+             1=1;doy=102%20and%20range_id=2,
+             1=1;doy=103%20and%20range_id=2,
+             1=1;doy=104%20and%20range_id=2,
+             1=1;doy=105%20and%20range_id=2
+</pre>
+
+    <div class="imagearea">
+        <img class="rendering" alt="Rendering 8" src="rendering_8.gif"/>
+    </div>
+
+    <pre class="urlparams">
+http://localhost:8080/geoserver/ncdc/wms/animate?LAYERS=ncdc%3Astates,ncdc%3Avinterpolation
+    &format=image/gif;subtype=animated
+    &FORMAT_OPTIONS=antialias%3Anone;gif_loop_continuosly:true;gif_frames_delay:100
+    &BBOX=-130.22644992774,18.880295604038,-62.300438208987,56.23960204935
+    &WIDTH=600
+    &HEIGHT=330
+    &TRANSPARENT=TRUE
+    &aparam=cql_filter
+    &avalues=1=1;doy=101%20and%20range_id=3,
+             1=1;doy=102%20and%20range_id=3,
+             1=1;doy=103%20and%20range_id=3,
+             1=1;doy=104%20and%20range_id=3,
+             1=1;doy=105%20and%20range_id=3
+</pre>
+
+    <div class="imagearea">
+        <img class="rendering" alt="Rendering 9" src="rendering_9.gif"/>
+    </div>
+
+    <pre class="urlparams">
+http://localhost:8080/geoserver/ncdc/wms/animate?LAYERS=ncdc%3Astates,ncdc%3Avinterpolation
+    &format=image/gif;subtype=animated
+    &FORMAT_OPTIONS=antialias%3Anone;gif_loop_continuosly:true;gif_frames_delay:100
+    &BBOX=-130.22644992774,18.880295604038,-62.300438208987,56.23960204935
+    &WIDTH=600
+    &HEIGHT=330
+    &TRANSPARENT=TRUE
+    &aparam=cql_filter
+    &avalues=1=1;doy=101%20and%20range_id=4,
+             1=1;doy=102%20and%20range_id=4,
+             1=1;doy=103%20and%20range_id=4,
+             1=1;doy=104%20and%20range_id=4,
+             1=1;doy=105%20and%20range_id=4
+</pre>
+
+    <div class="imagearea">
+        <img class="rendering" alt="Rendering 10" src="rendering_10.gif"/>
+    </div>
+
+    <pre class="urlparams">
+http://localhost:8080/geoserver/ncdc/wms/animate?LAYERS=ncdc%3Astates,ncdc%3Avinterpolation
+    &format=image/gif;subtype=animated
+    &FORMAT_OPTIONS=antialias%3Anone;gif_loop_continuosly:true;gif_frames_delay:100
+    &BBOX=-130.22644992774,18.880295604038,-62.300438208987,56.23960204935
+    &WIDTH=600
+    &HEIGHT=330
+    &TRANSPARENT=TRUE
+    &aparam=cql_filter
+    &avalues=1=1;doy=101%20and%20range_id=5,
+             1=1;doy=102%20and%20range_id=5,
+             1=1;doy=103%20and%20range_id=5,
+             1=1;doy=104%20and%20range_id=5,
+             1=1;doy=105%20and%20range_id=5
+</pre>
+
+    <p class="caption">Adding an animated WMS layer to an Open Layers map</p>
+
+    <p>
+        It would be very cool if we could add this animation to an Open Layers map. Let's see how this would work in
+        practice: we will use OpenLayers 2 and 3 and add an animated WMS layer.
+        The WMS layer will have to be carefully adjusted since we are not going to use a standard WMS request. As I do
+        not have a spatial database and a geoserver at my disposal in my website,
+        I cannot provide a live application, but all the code used for this test is shown below:
+    </p>
+
+    <details class="code-block">
+        <summary class="caption">OpenLayers2 HTML</summary>
+        <pre class="language-html"><code class="language-html">&lt;!DOCTYPE&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
+    &lt;title&gt;Animated Map&lt;/title&gt;
+    &lt;link href=&quot;http://cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/theme/default/style.tidy.css&quot; 
+             rel=&quot;stylesheet&quot; type=&quot;text/css&quot; media=&quot;screen&quot; /&gt;
+    &lt;script src=&quot;http://cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/OpenLayers.js&quot; 
+               type=&quot;application/javascript&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;animated-map.js&quot; type=&quot;application/javascript&quot;&gt;&lt;/script&gt;
+   
+    &lt;style&gt;
+        body, #animated-map {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;    
+            margin: 0;
+            padding: 0;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body onLoad=&quot;init()&quot;&gt;
+    &lt;div id=&quot;animated-map&quot; /&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+    </details>
+
+    <details class="code-block">
+        <summary class="caption">OpenLayers3 HTML</summary>
+        <pre class="language-html"><code class="language-html">&lt;!DOCTYPE&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
+    &lt;title&gt;Animated Map&lt;/title&gt;
+    &lt;link href=&quot;http://cdnjs.cloudflare.com/ajax/libs/ol3/3.3.0/ol.min.css&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot; media=&quot;screen&quot; /&gt;
+    &lt;script src=&quot;http://cdnjs.cloudflare.com/ajax/libs/ol3/3.3.0/ol.min.js&quot; type=&quot;application/javascript&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;animated-map.js&quot; type=&quot;application/javascript&quot;&gt;&lt;/script&gt;
+   
+    &lt;style&gt;
+        body, #animated-map {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;    
+            margin: 0;
+            padding: 0;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body onLoad=&quot;init()&quot;&gt;
+    &lt;div id=&quot;animated-map&quot; /&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+    </details>
+
+    <details class="code-block">
+        <summary class="caption">Animated map - OpenLayers 2</summary>
+        <pre class="language-javascript"><code class="language-javascript">function init() {
+    var map = new OpenLayers.Map({
+        div: &quot;animated-map&quot;,
+        projection: &quot;EPSG:3857&quot;,
+        layers: [
+            new OpenLayers.Layer.OSM(&quot;OpenCycleMap&quot;, 
+            [&quot;http://a.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png&quot;,
+             &quot;http://b.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png&quot;,
+             &quot;http://c.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png&quot;]),
+            new OpenLayers.Layer.WMS(&quot;Animated Max Temperatures&quot;, 
+                                     &quot;http://localhost:8080/geoserver/ncdc/wms/animate&quot;, {
+                                          LAYERS: 'ncdc:states,ncdc:vinterpolation',
+                                          FORMAT: 'image/gif;subtype=animated',
+                                          FORMAT_OPTIONS: 'antialias:none;gif_loop_continuosly:true;gif_frames_delay:100',
+                                          TRANSPARENT: 'true',
+                                          REQUEST: 'getmap',
+                                          SERVICE: 'animate', // MUST BE 'animate'. A 'wms' value will break it!
+                                          VERSION: '1.1.1',
+                                          aparam: 'cql_filter',
+                                          avalues: '1=1;doy=101 and range_id=4,1=1;doy=102 and range_id=4,1=1;doy=103 and range_id=4,1=1;doy=104 and range_id=4,1=1;doy=105 and range_id=4'
+                                      }, {
+                                          singleTile: true,
+                                          isBaseLayer: false
+                                      })
+        ],
+        center: [-10816145.248961, 4635141.3945678],
+        zoom: 4,
+        controls: [new OpenLayers.Control.LayerSwitcher()]
+    });
+}</code></pre>
+    </details>
+
+    <details class="code-block">
+        <summary class="caption">Animated map - OpenLayers 3</summary>
+        <pre class="language-javascript"><code class="language-javascript">function init() {
+    var layers = [
+      new ol.layer.Tile({
+        source: new ol.source.MapQuest({layer: 'sat'})
+      }),
+      new ol.layer.Image({
+        extent: [-13884991, 2870341, -7455066, 6338219],
+        source: new ol.source.ImageWMS({
+          url: 'http://localhost:8080/geoserver/ncdc/wms/animate',
+          params: {
+              'LAYERS': 'ncdc:states,ncdc:vinterpolation',
+              'FORMAT': 'image/gif;subtype=animated',
+              'FORMAT_OPTIONS': 'antialias:none;gif_loop_continuosly:true;gif_frames_delay:100',
+              'TRANSPARENT': 'true',
+              'REQUEST': 'getmap',
+              'SERVICE': 'animate', // MUST BE 'animate'. A 'wms' value will break it!
+              'VERSION': '1.1.1',
+              'aparam': 'cql_filter',
+              'avalues': '1=1;doy=101 and range_id=4,1=1;doy=102 and range_id=4,1=1;doy=103 and range_id=4,1=1;doy=104 and range_id=4,1=1;doy=105 and range_id=4'
+          },
+          serverType: 'geoserver'
+        })
+      })
+    ];
+    
+    var map = new ol.Map({
+      layers: layers,
+      target: 'animated-map',
+      view: new ol.View({
+        center: [-10997148, 4569099],
+        zoom: 4
+      })
+    });    
+}</code></pre>
+    </details>
+
+    <p>
+        Please note that there is one serious gotcha in the javascripts above: the default value for
+        <code>service</code> parameter for an animated WMS request
+        is <em>animate</em>, NOT <em>wms</em>, as described in the <a
+            href="http://docs.geoserver.org/stable/en/user/tutorials/animreflector.html#using-the-wms-animator"
+            target="_blank">docs</a>.
+    </p>
+
+    <p>
+        If you test the two codes above (OL2 and OL3 versions), you will notice that the OL2 version shows the animated
+        gif over the map, but OL3 just shows a static image. This due to
+        the fact that in OL3 the map is rendered on a canvas, which is apparently <a
+            href="http://stackoverflow.com/questions/3062229/animated-gif-in-html5-canvas">not designed to
+        display animated gifs</a>.
+    </p>
+
+    <p class="imagearea">
+        <video controls>
+            <source src="ol2-test.mp4" type="video/mp4">
+            <source src="ol2-test.webm" type="video/webm">
+            <track default kind="captions" label="English" src="ol2-test-en.vtt" srclang="en">
+            <track kind="captions" label="Português" src="ol2-test-pt.vtt" srclang="pt">
+            Your browser does not support the video tag.
+        </video>
+    </p>
+    <p class="subtitle">OL2 test: the animated gif is shown animated on the map. Notice the rendering delay in the
+        beginning.</p>
+    <p class="imagearea"><img alt="open layers 2 test" src="openlayers_3_test.jpg"/></p>
+    <p class="subtitle">OL3 test: the canvas is unable to display animated gifs. Only the first frame of the image is
+        shown</p>
+
+    <p class="caption">A complete application with animated WMS layers</p>
+
+    <p>
+        At this stage of the game we know that OL3 cannot display animated WMS layers due to a limitation of the HTML5
+        canvas. I will therefore proceed to create a final
+        application using OL2. This application allows the user to visualize the evolution of maximum temperatures over
+        a period of 7 days. This limit is imposed not by
+        the requirements of the application, but by the limited scalability of animated WMS layers. The legend is shown
+        over the map using the
+        <a href="http://docs.geoserver.org/latest/en/user/services/wms/get_legend_graphic/legendgraphic.html">GetLegendGraphic</a>
+        service.
+    </p>
+
+    <p>
+        One major drawback I have come across while developing this final experiment is the fact that, as of the time I
+        wrote this article, you cannot use ECQL with the <code>
+        avalues</code> parameter. Considering that the CQL queries for animated WMS requests can get fairly large due to
+        the simple fact that you have to specify one CQL condition per
+        frame, it is a major problem not being able to use the <code>IN</code> operator, which is extremely useful in
+        reducing the size of CQL conditions. One condition that
+        would be written as <code>range_id in (1,2,3,4,5)</code> in ECQL must be written as <code>range_id=1 or
+        range_id=2 or range_id=3 or range_id=4 or range_id=5</code> in
+        standard CQL. I am surprised that the GET request didn't break once I repeated this monster 7 times (because you
+        have to specify the CQL for every frame of the animation)
+    </p>
+
+    <p class="imagearea">
+        <iframe allowfullscreen height="480"
+                src="https://www.youtube.com/embed/rOVXBOxYgUo?rel=0&amp;showinfo=0" width="853"></iframe>
+    </p>
+
+    <p>The full source code of this experimental application:</p>
+
+    <details class="code-block">
+        <summary class="caption">Complete HTML</summary>
+        <pre class="language-html"><code class="language-html">&lt;!DOCTYPE&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
+    &lt;title&gt;Animated Map&lt;/title&gt;
+    &lt;link href=&quot;http://cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/theme/default/style.tidy.css&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot; media=&quot;screen&quot; /&gt;
+    &lt;link href=&quot;jquery-ui-1.11.4.custom/jquery-ui.min.css&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot; media=&quot;screen&quot; /&gt;
+    &lt;link href=&quot;skins/line/blue.css&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot; media=&quot;screen&quot; /&gt;
+    &lt;link href=&quot;animated-map.css&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot; media=&quot;screen&quot; /&gt;
+    
+    &lt;script src=&quot;http://cdnjs.cloudflare.com/ajax/libs/openlayers/2.13.1/OpenLayers.js&quot; type=&quot;application/javascript&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;http://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js&quot; type=&quot;application/javascript&quot;&gt;&lt;/script&gt;    
+    &lt;script src=&quot;http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js&quot; type=&quot;application/javascript&quot;&gt;&lt;/script&gt;    
+    &lt;script src=&quot;icheck.min.js&quot; type=&quot;application/javascript&quot;&gt;&lt;/script&gt;    
+    &lt;script src=&quot;animated-map.js&quot; type=&quot;application/javascript&quot;&gt;&lt;/script&gt;
+&lt;/head&gt;
+
+&lt;body&gt;
+    &lt;div id=&quot;animated-map&quot; /&gt;
+    
+    &lt;div id=&quot;legend-area&quot;&gt;
+        &lt;img src=&quot;http://localhost:8080/geoserver/ncdc/wms?REQUEST=GetLegendGraphic&amp;VERSION=1.0.0&amp;FORMAT=image/png&amp;WIDTH=20&amp;HEIGHT=20&amp;STRICT=false&amp;style=temperature_range&quot; alt=&quot;temperature legend&quot; /&gt;
+    &lt;/div&gt;
+    
+    &lt;div id=&quot;temperature-panel&quot;&gt;
+        &lt;div id=&quot;temperature-range-options&quot;&gt;
+            &lt;h1&gt;Temperature range&lt;/h1&gt;
+            
+            &lt;ul&gt;
+                &lt;li&gt;&lt;input type=&quot;checkbox&quot; name=&quot;temperature-range&quot; value=&quot;0&quot; checked /&gt;&lt;label&gt;Under -10°C&lt;/label&gt;&lt;/li&gt;
+                &lt;li&gt;&lt;input type=&quot;checkbox&quot; name=&quot;temperature-range&quot; value=&quot;1&quot; checked /&gt;&lt;label&gt;-10°C to 0°C&lt;/label&gt;&lt;/li&gt;
+                &lt;li&gt;&lt;input type=&quot;checkbox&quot; name=&quot;temperature-range&quot; value=&quot;2&quot; checked /&gt;&lt;label&gt;0°C to 10°C&lt;/label&gt;&lt;/li&gt;
+                &lt;li&gt;&lt;input type=&quot;checkbox&quot; name=&quot;temperature-range&quot; value=&quot;3&quot; checked /&gt;&lt;label&gt;10°C to 20°C&lt;/label&gt;&lt;/li&gt;
+                &lt;li&gt;&lt;input type=&quot;checkbox&quot; name=&quot;temperature-range&quot; value=&quot;4&quot; checked /&gt;&lt;label&gt;20°C to 30°C&lt;/label&gt;&lt;/li&gt;
+                &lt;li&gt;&lt;input type=&quot;checkbox&quot; name=&quot;temperature-range&quot; value=&quot;5&quot; checked /&gt;&lt;label&gt;Over 30°C&lt;/label&gt;&lt;/li&gt;
+            &lt;/ul&gt;
+        &lt;/div&gt;
+        
+        &lt;div id=&quot;period-options&quot;&gt;
+            &lt;h1&gt;Period&lt;/h1&gt;
+            
+            &lt;div&gt;
+                &lt;label&gt;From:&lt;/label&gt;
+                &lt;input id=&quot;initial-date&quot; type=&quot;text&quot; value=&quot;01/01/2014&quot; /&gt;
+                &lt;input id=&quot;initial-doy&quot; type=&quot;hidden&quot; value=&quot;1&quot; /&gt;
+            &lt;/div&gt;
+            
+            &lt;div&gt;
+                &lt;label&gt;To:&lt;/label&gt;
+                &lt;input id=&quot;final-date&quot; type=&quot;text&quot; readonly value=&quot;01/07/2014&quot; /&gt;
+                &lt;input id=&quot;final-doy&quot; type=&quot;hidden&quot; value=&quot;8&quot; /&gt;            
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    
+    &lt;div id=&quot;temperature-panel-button&quot;&gt;&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+    </details>
+
+    <details class="code-block">
+        <summary class="caption">Complete CSS</summary>
+        <pre class="language-css"><code class="language-css">body, #animated-map {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;    
+    margin: 0;
+    padding: 0;
+}
+ 
+#legend-area {
+    position: absolute;
+    z-index: 1000;
+    bottom: 10px;
+    right: 10px;    
+    opacity: 0.8;
+}
+
+#temperature-panel-button {
+    position: absolute;
+    z-index: 1000;
+    bottom: 10px;
+    left: 10px;
+    background-image: url("thermometer-icon.png");
+    background-color: darkblue;
+    background-size: 32px;
+    width: 40px;
+    height: 40px;
+    background-repeat: no-repeat;
+    border-radius: 40px;
+    background-position-x: 4px;
+    background-position-y: 4px;
+    cursor: pointer;
+    opacity: 0.8;
+    border: 2px solid white;
+}
+
+#temperature-panel {
+    display: none;    
+    overflow: hidden;
+}
+
+#temperature-panel li {
+    list-style: none;
+    height: 34px;
+    font-size: 1.2em;
+    margin-left: -20px;
+    width: 180px;
+}
+
+#temperature-panel > div {
+    float: left;    
+}
+
+#temperature-panel > div + div {
+    border-left: 1px solid white;
+    margin-left: 20px;
+    padding-left: 20px;            
+}
+
+#period-options {
+    height: 256px;    
+}
+
+#period-options label {
+    font-size: 1.2em;
+    text-align: right;
+    display: inline-block;
+    width: 40px;
+    font-weight: bold;
+}
+
+#period-options div {
+    height: 28px;
+    width: 100%;
+}
+
+#period-options input[type="text"] {
+    text-align: center;
+    width: 90px;    
+}
+
+.ui-dialog {
+    z-index: 1000;    
+}
+
+.ui-widget-content {
+    font-size: 0.8em;    
+}
+
+.icheckbox_line-blue {
+    width: 115px;    
+    color: black !important;
+}</code></pre>
+    </details>
+
+    <details class="code-block">
+        <summary class="caption">Complete Javascript</summary>
+        <pre class="language-javascript"><code class="language-javascript">var map = null;
+var ANIMATED_LAYER_NAME = &quot;Animated Max Temperatures&quot;;
+
+$(document).ready(function(){
+    initMap();
+    initControls();    
+});
+
+function initMap() {
+    map = new OpenLayers.Map({
+        div: &quot;animated-map&quot;,
+        projection: &quot;EPSG:3857&quot;,
+        layers: [createMapQuestLayer(), 
+                 createOSMLayer(),
+                 createAnimatedLayer(),
+                 createStatesLayer()],
+        center: [-10816145.248961, 4635141.3945678],
+        zoom: 4,
+        controls: [new OpenLayers.Control.LayerSwitcher(), 
+                   new OpenLayers.Control.Navigation(), 
+                   new OpenLayers.Control.Zoom()]
+    });    
+}
+
+function createMapQuestLayer() {
+    return new OpenLayers.Layer.XYZ(
+        &quot;MapQuest&quot;,
+        [
+            &quot;http://otile1.mqcdn.com/tiles/1.0.0/sat/${z}/${x}/${y}.png&quot;,
+            &quot;http://otile2.mqcdn.com/tiles/1.0.0/sat/${z}/${x}/${y}.png&quot;,
+            &quot;http://otile3.mqcdn.com/tiles/1.0.0/sat/${z}/${x}/${y}.png&quot;,
+            &quot;http://otile4.mqcdn.com/tiles/1.0.0/sat/${z}/${x}/${y}.png&quot;
+        ],
+        {
+            attribution: &quot;Tiles Courtesy of &lt;a href='http://open.mapquest.co.uk/' target='_blank'&gt;MapQuest&lt;/a&gt;. Portions Courtesy NASA/JPL-Caltech and U.S. Depart. of Agriculture, Farm Service Agency. &lt;img src='http://developer.mapquest.com/content/osm/mq_logo.png' border='0'&gt;&quot;,
+            transitionEffect: &quot;resize&quot;
+        }
+    );    
+}
+
+function createOSMLayer() {
+    return new OpenLayers.Layer.OSM(&quot;OSM - OpenCycleMap&quot;,
+          [&quot;http://a.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png&quot;,
+           &quot;http://b.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png&quot;,
+           &quot;http://c.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png&quot;]);
+}
+
+function createAnimatedLayer() {
+    return new OpenLayers.Layer.WMS(ANIMATED_LAYER_NAME, &quot;http://localhost:8080/geoserver/ncdc/wms/animate&quot;, {
+          LAYERS: 'ncdc:vinterpolation',
+          FORMAT: 'image/gif;subtype=animated',
+          FORMAT_OPTIONS: 'antialias:none;gif_loop_continuosly:true;gif_frames_delay:100',
+          TRANSPARENT: 'true',
+          REQUEST: 'getmap',
+          SERVICE: 'animate',
+          VERSION: '1.1.1',
+          aparam: 'cql_filter',
+          avalues: 'doy=1,doy=2,doy=3,doy=4,doy=5,doy=6,doy=7'
+      }, {
+          singleTile: true,
+          isBaseLayer: false,
+          visibility: false
+      });
+}
+
+function createStatesLayer() {
+    return new OpenLayers.Layer.WMS(&quot;United States&quot;, &quot;http://localhost:8080/geoserver/ncdc/wms&quot;, {
+          LAYERS: 'ncdc:states',
+          FORMAT_OPTIONS: 'antialias:none',
+          TRANSPARENT: 'true',
+          CQL_FILTER: &quot;STUSPS NOT IN ('AK','HI','AS','MP','PR','VI','UM','GU')&quot;
+    }, {
+        singleTile: true, // Has to be true, otherwise labels will repeat within the same polygon
+        isBaseLayer: false,
+        visibility: true    
+    });
+}
+
+function initControls() {
+    $('#temperature-range-options input').each(function() {
+        var self = $(this);
+        var label = self.next();
+        var label_text = label.text();
+
+        label.remove();
+        self.iCheck({
+            checkboxClass: 'icheckbox_line-blue',
+            insert: '&lt;div class=&quot;icheck_line-icon&quot;&gt;&lt;/div&gt;' + label_text
+        });            
+    });    
+    
+    // Temperature colors, as in the SLD
+    var colors = ['AB86C1', '7EAAD1', '68C1D6', '66BB9D', 'B9DF76', 'FFDD67'];
+    
+    // Changes the colors of the checkboxes to match the temperature ranges
+    $(&quot;.icheckbox_line-blue&quot;).each(function() {
+        $(this).css(&quot;background-color&quot;, &quot;#&quot; + colors.shift());
+    });
+    
+    $(&quot;#initial-date&quot;).datepicker({
+        minDate: new Date(2014, 0, 1),
+        maxDate: new Date(2014, 11, 24),
+        onSelect: function() {
+            var date = $(this).datepicker(&quot;getDate&quot;);
+            var finalDate = new Date(date.getTime() + 604800000);
+            var doy = date.dayOfYear();
+            $(&quot;#initial-doy&quot;).val(doy);
+            $(&quot;#final-doy&quot;).val(doy + 7);
+            $(&quot;#final-date&quot;).val((finalDate.getMonth() + 1).pad(2) + &quot;/&quot; + finalDate.getDate().pad(2) + &quot;/2014&quot;);
+        }
+    });
+    
+    $(&quot;#temperature-panel&quot;).dialog({
+        width: 420,
+        height: 350,
+        autoOpen: false,
+        title: 'Visualization options',
+        buttons: {
+            &quot;Close&quot;: function() {
+              $(this).dialog(&quot;close&quot;);
+            },
+            &quot;Apply&quot;: function() {
+                 updateTemperatures();
+                $(this).dialog(&quot;close&quot;);
+            }
+        }
+    });    
+    
+    $(&quot;#temperature-panel-button&quot;).click(function() {
+        $(&quot;#temperature-panel&quot;).dialog(&quot;open&quot;);
+    });    
+}
+
+function updateTemperatures() {
+    var layer = map.getLayersByName(ANIMATED_LAYER_NAME)[0];
+    layer.mergeNewParams({
+        AVALUES: buildCQL()
+    });
+    layer.setVisibility(true);
+    layer.redraw();
+}
+
+function buildCQL() {
+    var selectedRanges = $(&quot;input[name='temperature-range']:checked&quot;).map(function(){return $(this).val();}).get();
+    var initialDOY = parseInt($(&quot;#initial-doy&quot;).val());
+    var rangeCQL = &quot;&quot;;
+    
+    // If all ranges were selected, there is no need to include the range_id filter, hence the condition 
+    if (selectedRanges.length == 1) {
+        rangeCQL = &quot;and range_id=&quot; + selectedRanges.toString();
+    } else  if (selectedRanges.length &lt; 6) { // Unfortunately the ECQL construct &quot;in&quot; does not work
+        rangeCQL += &quot; and (&quot;;
+    
+        for (var r = 0; r &lt; selectedRanges.length; r++) {
+            rangeCQL += (r &gt; 0 ? &quot; or &quot; : &quot;&quot;) + &quot;range_id=&quot; + selectedRanges[r];
+        }
+        
+        rangeCQL += &quot;)&quot;;
+    } 
+    
+    var finalCQL = &quot;&quot;;
+    
+    for (var doy = initialDOY, c = 0; doy &lt; (initialDOY + 7); doy++, c++) {
+        finalCQL += &quot;doy=&quot; + doy + rangeCQL + &quot;,&quot;;
+    }
+    
+    return finalCQL.substring(0, finalCQL.length - 1);    
+}
+
+// Some duck typing...
+
+Date.prototype.dayOfYear = function() {
+    var j1= new Date(this);
+    j1.setMonth(0, 0);
+    return Math.round((this-j1)/8.64e7);
+}
+
+Number.prototype.pad = function(size) {
+    var s = String(this);
+    while (s.length &lt; (size || 2)) {s = &quot;0&quot; + s;}
+    return s;
+}</code></pre>
+    </details>
+
+    <p>
+        GeoServer startup parameters: <code>-Xmx8192m -XX:MaxPermSize=512m</code>
+    </p>
+
+</main>
+
+<!-- CONCLUSION END -->
+
+<div id="footer">
+    <p class="legal">
+        &copy;2005-2026 Dalton Filho. All Rights Reserved. &nbsp;&nbsp;&bull;&nbsp;&nbsp; Design by <a
+            href="http://www.freecsstemplates.org/">Free CSS Templates</a> and <a
+            href="http://www.daltonfilho.com/">Dalton Filho</a> &nbsp;&nbsp;&bull;&nbsp;&nbsp; Icons by <a
+            href="http://famfamfam.com/">FAMFAMFAM</a> and <a href="http://everaldo.com/">Everaldo</a>.
+    </p>
+    <button id="theme-toggle" type="button">🌙 Dark</button>
+</div>
+
+<script>
+    (function () {
+      const root = document.documentElement;
+      const key = "theme";
+      const btn = document.getElementById("theme-toggle");
+
+      function apply(theme) {
+        if (theme === "dark") root.setAttribute("data-theme", "dark");
+        else root.removeAttribute("data-theme");
+        if (btn) btn.textContent = theme === "dark" ? "☀️ Light" : "🌙 Dark";
+      }
+
+      const saved = localStorage.getItem(key);
+      apply(saved === "dark" ? "dark" : "light");
+
+      if (btn) {
+        btn.addEventListener("click", () => {
+          const isDark = root.getAttribute("data-theme") === "dark";
+          const next = isDark ? "light" : "dark";
+          localStorage.setItem(key, next);
+          apply(next);
+        });
+      }
+    })();
+</script>
+
+
+</body>
+</html>
